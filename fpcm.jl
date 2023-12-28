@@ -14,12 +14,12 @@ M[2,1,2,2]=1.0
 M[1,1,2,2]=1.0
 # logZ = 0.3230659669
 
-M = zeros((2,2,2,2))
-M[2,1,1,1]=1.0
-M[1,2,1,1]=1.0
-M[1,1,2,1]=1.0
-M[1,1,1,2]=1.0
-# logZ = 0.29152163577 # (0.29155024471215657
+# M = zeros((2,2,2,2))
+# M[2,1,1,1]=1.0
+# M[1,2,1,1]=1.0
+# M[1,1,2,1]=1.0
+# M[1,1,1,2]=1.0
+# logZ = 0.29152163577 # (0.29155024471215657 # passed)
 
 
 C = rand(χ,χ)
@@ -78,7 +78,7 @@ end
 
 function leftmove(state)
     Cul, Cld, Cdr, Cru, Au, Al, Ad, Ar, T = state
-    Cul, Cld, Pl⁺, Pl⁻ = getPL(Au, Ad, Cul*Cdl)
+    Cul, Cld, Pl⁺, Pl⁻ = getPL(Au, Ad, Cul*Cld)
 
     _, Cul = leftenv(Au,Pl⁻,Cul)
     _, Cld = leftenv(Pl⁺,Ad,Cld)
@@ -90,14 +90,14 @@ end
 function logZ(state)
     Cul, Cld, Cdr, Cru, Au, Al, Ad, Ar, T = state
     λT , _ = leftenv(Au,Ad,T,ein"ij,jkl,lp->ikp"(Cul,Al,Cul))
-    λL , _ = leftenv(Au,Ad,Cul*Cdl)
+    λL , _ = leftenv(Au,Ad,Cul*Cld)
     return log(abs(λT/λL))
 end
 
 rotatemove = cycle ∘ leftmove
 cyclemove = rotatemove ∘ rotatemove ∘ rotatemove ∘ rotatemove
 
-for i = 1:100
+for i = 1:1000
     state = cyclemove(state)
     @show logZ(state), logZ(cycle(state)),  logZ(cycle(cycle(state))), logZ((cycle ∘cycle ∘ cycle)(state))
 end
