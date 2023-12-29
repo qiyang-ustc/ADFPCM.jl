@@ -3,3 +3,4 @@
 /project
 *.jld2
 *.log
+*.out

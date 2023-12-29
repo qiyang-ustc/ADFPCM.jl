@@ -12,7 +12,7 @@ end
 
 @with_kw mutable struct Params
     χ::Int = 16
-    tol::Float64 = 1e-10
+    tol::Float64 = 1e-14
     maxiter::Int = 1000
     miniter::Int = 100
     output_interval::Int = 1
@@ -58,15 +58,19 @@ function logZ(rt::FPCMRuntime)
     return log(abs(λT/λL))
 end
 
-function FPCM(M, Params)
-    # initialization
+function initialize_runtime(M, Params)
     in_chkp_file = Params.infolder*"/χ$(Params.χ).jld2"
     if isfile(in_chkp_file)                               
         rt = FPCMRuntime(M, in_chkp_file, Params)   
     else
         rt = FPCMRuntime(M, Val(:random), Params)
     end
+    return rt
+end
+ 
 
+function FPCM(rt, Params)
+    @unpack M = rt
     freenergy = logZ(rt)
     for i = 1:Params.maxiter
         # rt = cyclemove(rt)
@@ -74,8 +78,9 @@ function FPCM(M, Params)
         freenergy_new = logZ(rt)
         err = abs(freenergy_new - freenergy)
         freenergy = freenergy_new
+        nn = nonnormality(rt)
 
-        i % Params.output_interval == 0 && println("i = $i, err = $(err), logZ = $(freenergy)")
+        i % Params.output_interval == 0 && println(logentry(i,err,freenergy,nn))
         if Params.ifsave && err < Params.savetol && (i % Params.save_interval == 0 || err < Params.tol)
             rts = FPCMRuntime(Array(M), Array(rt.Cul), Array(rt.Cld), Array(rt.Cdr), Array(rt.Cru), Array(rt.Au), Array(rt.Al), Array(rt.Ad), Array(rt.Ar))
             out_chkp_file = Params.outfolder*"/χ$(Params.χ).jld2"
@@ -83,7 +88,7 @@ function FPCM(M, Params)
         end
 
         if err < Params.tol && i > Params.miniter
-            println("i = $i, err = $(err), logZ = $(freenergy)")
+            println(logentry(i,err,freenergy,nn))
             break
         end
     end
