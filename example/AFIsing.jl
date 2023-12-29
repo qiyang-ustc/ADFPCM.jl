@@ -10,7 +10,7 @@ include("exampleobs.jl")
 
     β = 100
     model = Ising_Triangle_bad2(Ni, Nj, β)
-    M = reshape(atype(model_tensor(model, Val(:Sbulk))),2,2,2,2)
+    M = atype(reshape(atype(model_tensor(model, Val(:Sbulk))),2,2,2,2))
     rt = FPCM(M, ADFPCM.Params(χ=χ))
     @show logZ(rt) - 0.3230659669
     f1 = logZ(rt)
