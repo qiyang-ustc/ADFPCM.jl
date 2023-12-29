@@ -1,32 +1,7 @@
 using LinearAlgebra
 using KrylovKit
 using OMEinsum
-
-d = 2
-χ = 16
-
-M = zeros((2,2,2,2))
-M[2,1,1,1]=1.0
-M[1,2,1,1]=1.0
-M[2,2,1,1]=1.0
-M[1,2,2,2]=1.0
-M[2,1,2,2]=1.0
-M[1,1,2,2]=1.0
-# logZ = 0.3230659669
-
-# M = zeros((2,2,2,2))
-# M[2,1,1,1]=1.0
-# M[1,2,1,1]=1.0
-# M[1,1,2,1]=1.0
-# M[1,1,1,2]=1.0
-# logZ = 0.29152163577 # (0.29155024471215657 # passed)
-
-
-C = rand(χ,χ)
-A = rand(χ,d,χ)
-
-Cul, Cld, Cdr, Cru, Au, Al, Ad, Ar = C,C,C,C,A,A,A,A
-state = Cul, Cld, Cdr, Cru, Au, Al, Ad, Ar, M
+using CUDA
 
 CLmap(Au,Ad) = x-> ein"ip,kji,pjl->kl"(x,Au,Ad)
 CLTmap(Au,Ad,T) = x-> ein"iap,kji,jabc,pbl->kcl"(x,Au,T,Ad)
@@ -96,8 +71,3 @@ end
 
 rotatemove = cycle ∘ leftmove
 cyclemove = rotatemove ∘ rotatemove ∘ rotatemove ∘ rotatemove
-
-for i = 1:1000
-    state = cyclemove(state)
-    @show logZ(state), logZ(cycle(state)),  logZ(cycle(cycle(state))), logZ((cycle ∘cycle ∘ cycle)(state))
-end
