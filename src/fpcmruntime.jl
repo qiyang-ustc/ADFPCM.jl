@@ -78,7 +78,7 @@ function FPCM(M, Params)
         i % Params.output_interval == 0 && println("i = $i, err = $(err), logZ = $(freenergy)")
         if Params.ifsave && err < Params.savetol && (i % Params.save_interval == 0 || err < Params.tol)
             rts = FPCMRuntime(Array(M), Array(rt.Cul), Array(rt.Cld), Array(rt.Cdr), Array(rt.Cru), Array(rt.Au), Array(rt.Al), Array(rt.Ad), Array(rt.Ar))
-            out_chkp_file = Params.outfolder*"χ$(Params.χ).jld2"
+            out_chkp_file = Params.outfolder*"/χ$(Params.χ).jld2"
             save(out_chkp_file, "rt", rts)
         end
 
