@@ -14,6 +14,7 @@ end
     χ::Int = 16
     tol::Float64 = 1e-10
     maxiter::Int = 1000
+    miniter::Int = 100
     output_interval::Int = 1
     ifsave::Bool = true
     savetol::Float64 = 1e-1
@@ -77,7 +78,7 @@ function FPCM(M, Params)
             save(out_chkp_file, "rt", rts)
         end
 
-        if err < Params.tol
+        if err < Params.tol && i > Params.miniter
             println("i = $i, err = $(err), logZ = $(freenergy)")
             break
         end
