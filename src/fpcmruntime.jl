@@ -46,7 +46,10 @@ end
 cycle(rt::FPCMRuntime) = FPCMRuntime(permutedims(rt.M,(2,3,4,1)), rt.Cld, rt.Cdr, rt.Cru, rt.Cul, rt.Al, rt.Ad, rt.Ar, rt.Au)
 
 rotatemove = cycle ∘ leftmove
+rightmove = leftmove ∘ cycle ∘ cycle
 cyclemove = rotatemove ∘ rotatemove ∘ rotatemove ∘ rotatemove
+hvmove = cycle ∘ rightmove ∘ leftmove
+
 
 function logZ(rt::FPCMRuntime)
     @unpack M, Cul, Cld, Au, Al, Ad = rt
@@ -66,7 +69,8 @@ function FPCM(M, Params)
 
     freenergy = logZ(rt)
     for i = 1:Params.maxiter
-        rt = cyclemove(rt)
+        # rt = cyclemove(rt)
+        rt = hvmove(rt)
         freenergy_new = logZ(rt)
         err = abs(freenergy_new - freenergy)
         freenergy = freenergy_new

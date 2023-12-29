@@ -1,16 +1,13 @@
 module ADFPCM
 
     using FileIO
-    using LinearAlgebra
     using KrylovKit
-    using OMEinsum
-    using Parameters
     using Random
     using JLD2
     using Reexport
 
     export FPCMRuntime, FPCM
-    @reexport using CUDA
+    @reexport using CUDA, LinearAlgebra, OMEinsum, Parameters
 
     include("environment.jl")
     include("fpcmruntime.jl")
