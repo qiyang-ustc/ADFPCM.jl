@@ -19,7 +19,7 @@ end
     savetol::Float64 = 1e-1
     save_interval::Int = 10
     infolder = "./data/"
-    outfolder = "./data/"
+    outfolder = infolder
     verbose::Bool = true
 end
 
