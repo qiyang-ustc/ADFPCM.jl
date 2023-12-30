@@ -1,5 +1,20 @@
-Cmap(x, Au, Ad) = ein"(ip,kji),pjl->kl"(x, Au, Ad)
-Emap(x, Au, Ad, T) = ein"((iap,kji),jabc),pbl->kcl"(x, Au, T, Ad)
+"""
+    i──────┬──────k
+    │      │       
+    │      j       
+    │      │       
+    p──────┴──────l
+"""
+Cmap(x, Au, Ad) = ein"(kji,ip),pjl->kl"(Au, x, Ad)
+
+"""
+    i ────┬──── k 
+    │     j     
+    ├─ a ─┼─ c  
+    │     b     
+    p ────┴──── l 
+"""
+Emap(x, Au, Ad, M) = ein"((kji,iap),jabc),pbl->kcl"(Au, x, M, Ad)
 
 function Cenv(Au, Ad, Cl)
     λ, cl, info = eigsolve(x -> Cmap(x, Au, Ad), Cl, 1, :LM)
