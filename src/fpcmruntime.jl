@@ -35,8 +35,8 @@ function FPCMRuntime(M, ::Val{:random}, Params)
 end
 
 function FPCMRuntime(M, chkp_file::String, Params)
-    rt = load(chkp_file)["rt"]
-    Params.verbose && println("fpcm environment load from $(chkp_file) ->") 
+    rt = loadtype(chkp_file, FPCMRuntime)
+    Params.verbose && println("fpcm environment load from $(chkp_file), set up χ=$(χ) is blocked ->") 
     if typeof(M) <: CuArray
         rt = FPCMRuntime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Au), CuArray(rt.Al), CuArray(rt.Ad), CuArray(rt.Ar))
     end  
@@ -59,7 +59,7 @@ function logZ(rt::FPCMRuntime)
 end
 
 function initialize_runtime(M, Params)
-    in_chkp_file = Params.infolder*"/χ$(Params.χ).jld2"
+    in_chkp_file = Params.infolder*"/χ$(Params.χ).h5"
     if isfile(in_chkp_file)                               
         rt = FPCMRuntime(M, in_chkp_file, Params)   
     else
@@ -83,8 +83,8 @@ function FPCM(rt, Params)
         i % Params.output_interval == 0 && println(logentry(i,err,freenergy,nn))
         if Params.ifsave && err < Params.savetol && (i % Params.save_interval == 0 || err < Params.tol)
             rts = FPCMRuntime(Array(M), Array(rt.Cul), Array(rt.Cld), Array(rt.Cdr), Array(rt.Cru), Array(rt.Au), Array(rt.Al), Array(rt.Ad), Array(rt.Ar))
-            out_chkp_file = Params.outfolder*"/χ$(Params.χ).jld2"
-            save(out_chkp_file, "rt", rts)
+            out_chkp_file = Params.outfolder*"/χ$(Params.χ).h5"
+            savetype(out_chkp_file, rts, FPCMRuntime)
         end
 
         if err < Params.tol && i > Params.miniter

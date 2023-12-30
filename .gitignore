@@ -2,5 +2,7 @@
 /Manifest.toml
 /project
 *.jld2
+*.h5
 *.log
 *.out
+data
