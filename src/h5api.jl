@@ -16,5 +16,5 @@ function loadtype(file, type)
             push!(object, Array(fid[String(field)]))
         end
     end
-    return type(tuple(object)...)
+    return type(object...)
 end
