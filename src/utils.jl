@@ -12,11 +12,11 @@ end
 function mcform(M)
     aM = Array(M)
     x = ein"ijil->jl"(aM)
-    w,vh = eigen(x)
-    aM = ein"ijkl,aj,lb->iakb"(aM,inv(vh),vh)
+    _, vh = eigen(x)
+    aM = ein"aj,(ijkl,lb)->iakb"(inv(vh),aM,vh)
     y = ein"ijkj->ik"(aM)
-    w,vv = eigen(y)
-    aM = ein"ijkl,ai,kb->ajbl"(aM,inv(vv),vv)
+    _, vv = eigen(y)
+    aM = ein"(ai,ijkl),kb->ajbl"(inv(vv),aM,vv)
     aM = typeof(M)(aM)
     return vv, vh, aM
 end    

@@ -1,17 +1,21 @@
 using ADFPCM
-using Test
+using ADFPCM: cycle, logZ
 
-include("exampletensors.jl")
-include("exampleobs.jl")
-
-@testset "AFIsing with with $atype " for Ni = [1], Nj = [1], atype = [CuArray]
+let
+    include("exampletensors.jl")
+    include("exampleobs.jl")
     d = 2
-    χ = 128
-
+    χ = 16
     β = 100
-    model = Ising_Triangle_bad2(Ni, Nj, β)
+    atype = Array
+    
+    model = Ising_Triangle_bad2(1, 1, β)
     M = atype(reshape(model_tensor(model, Val(:Sbulk)), 2,2,2,2))
-    rt = FPCM(M, ADFPCM.Params(χ=χ, infolder = "./data/$model"))
+    _, _, mcM = mcform(M)
+    params = ADFPCM.Params(χ=χ, ifsave=false, maxiter=1000)
+    
+    rt = initialize_runtime(mcM, params)
+    rt = FPCM(rt, params)
     @show logZ(rt) - 0.3230659669
     f1 = logZ(rt)
     f2 = (logZ ∘ cycle)(rt)
