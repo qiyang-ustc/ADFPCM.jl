@@ -50,14 +50,6 @@ rightmove = leftmove ∘ cycle ∘ cycle
 cyclemove = rotatemove ∘ rotatemove ∘ rotatemove ∘ rotatemove
 hvmove = cycle ∘ rightmove ∘ leftmove
 
-
-function logZ(rt::FPCMRuntime)
-    @unpack M, Cul, Cld, Au, Al, Ad = rt
-    λT , _ = Eenv(Au, Ad, M, ein"ij,jkl,lp->ikp"(Cul,Al,Cul))
-    λL , _ = Cenv(Au, Ad, Cul*Cld)
-    return log(abs(λT/λL))
-end
-
 function initialize_runtime(M, Params)
     in_chkp_file = Params.infolder*"/χ$(Params.χ).h5"
     if isfile(in_chkp_file)                               
@@ -67,7 +59,6 @@ function initialize_runtime(M, Params)
     end
     return rt
 end
- 
 
 function FPCM(rt, Params)
     @unpack M = rt

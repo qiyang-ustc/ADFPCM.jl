@@ -1,5 +1,12 @@
 export nonnormality, mcform, expand
 
+function logZ(rt::FPCMRuntime)
+    @unpack M, Cul, Cld, Au, Al, Ad = rt
+    λT , _ = Eenv(Au, Ad, M, ein"ij,jkl,lp->ikp"(Cul,Al,Cul))
+    λL , _ = Cenv(Au, Ad, Cul*Cld)
+    return log(abs(λT/λL))
+end
+
 function nonnormality(rt)
     @unpack M, Au, Ad, Al = rt
     λw, _, _ = eigsolve(x -> Emap(x, Au, Ad, M), Al, 1, :LM)
