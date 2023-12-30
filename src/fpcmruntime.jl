@@ -60,8 +60,8 @@ function initialize_runtime(M, Params)
     return rt
 end
 
-function FPCM(rt, Params)
-    @unpack M = rt
+FPCM(rt::FPCMRuntime, Params) = FPCM(rt.M, rt, Params)
+function FPCM(M, rt::FPCMRuntime, Params)
     freenergy = logZ(rt)
     for i = 1:Params.maxiter
         # rt = cyclemove(rt)
