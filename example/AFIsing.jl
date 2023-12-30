@@ -12,7 +12,7 @@ let
     model = Ising_Triangle_bad2(1, 1, β)
     M = atype(reshape(model_tensor(model, Val(:Sbulk)), 2,2,2,2))
     _, _, mcM = mcform(M)
-    params = ADFPCM.Params(χ=χ, ifsave=false, maxiter=1000)
+    params = ADFPCM.Params(χ=χ, ifsave=true, maxiter=1000, infolder="./data/$model/")
     
     rt = initialize_runtime(mcM, params)
     rt = FPCM(rt, params)

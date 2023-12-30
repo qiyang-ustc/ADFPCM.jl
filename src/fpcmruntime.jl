@@ -80,15 +80,19 @@ function FPCM(rt, Params)
         freenergy = freenergy_new
         nn = nonnormality(rt)
 
-        i % Params.output_interval == 0 && println(logentry(i,err,freenergy,nn))
+        i % Params.output_interval == 0 && print(logentry(i, err, freenergy, nn))
         if Params.ifsave && err < Params.savetol && (i % Params.save_interval == 0 || err < Params.tol)
             rts = FPCMRuntime(Array(M), Array(rt.Cul), Array(rt.Cld), Array(rt.Cdr), Array(rt.Cru), Array(rt.Au), Array(rt.Al), Array(rt.Ad), Array(rt.Ar))
             out_chkp_file = Params.outfolder*"/χ$(Params.χ).jld2"
             save(out_chkp_file, "rt", rts)
+
+            logfile = open(Params.outfolder*"/χ$(Params.χ).log", "a")
+            write(logfile, logentry(i, err, freenergy, nn))
+            close(logfile)
         end
 
         if err < Params.tol && i > Params.miniter
-            println(logentry(i,err,freenergy,nn))
+            print(logentry(i, err, freenergy, nn))
             break
         end
     end

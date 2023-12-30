@@ -41,6 +41,4 @@ function expand(rt,χ,ϵ=1E-7)
     return FPCMRuntime(M, Cul, Cld, Cdr, Cru, Au, Al, Ad, Ar)
 end
 
-function logentry(i,err,freenergy,nn)
-    return "i = $i,\terr = $(err),\tlogZ = $(freenergy),\tnonnormality=$(nn)"
-end
+logentry(i, err, freenergy, nn) = @sprintf("i = %d,\terr = %.3e,\tlogZ = %.15f,\tnonnormality=%.3f\n", i, err, freenergy, nn)
