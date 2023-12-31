@@ -75,7 +75,7 @@ function ChainRulesCore.rrule(::typeof(Eenv), Tu, Td, M, Tl)
         @assert info.converged==1
         # errL = ein"abc,abc ->"(conj(Tl), ξl)[]
         # abs(errL) > 1e-1 && throw("Tl and ξl aren't orthometric. err = $(errL)")
-        dTu = -ein"((adf,fgh),bdge),ceh -> abc"(Tl, Td, M, ξl) 
+        dTu = -ein"((adf,fgh),bdge),ceh -> cba"(Tl, Td, M, ξl) 
         dTd = -ein"((adf,cba),bdge),ceh -> fgh"(Tl, Tu, M, ξl)
         dM = -ein"(adf,cba),(fgh,ceh) -> bdge"(Tl, Tu, Td, ξl)
         return NoTangent(), conj(dTu), conj(dTd), conj(dM), NoTangent()...
@@ -105,12 +105,12 @@ function ChainRulesCore.rrule(::typeof(Cenv), Tu, Td, C; kwargs...)
     λl, C = Cenv(Tu, Td, C)
     function back((dλ, dC))
         dC -= Array(ein"ab,ab ->"(conj(C), dC))[] * C
-        ξl, info = linsolve(R -> ein"(be,bca), dce -> ad"(R,Tu,Td), conj(dC), -λl, 1; maxiter = 1)
+        ξl, info = linsolve(R -> ein"(be,bca),dce -> ad"(R,Tu,Td), conj(dC), -λl, 1; maxiter = 1)
         @assert info.converged==1
         # errL = ein"ab,ab ->"(conj(C), ξl)[]
         # abs(errL) > 1e-1 && throw("C and ξl aren't orthometric. err = $(errL)")
-        dTu = -ein"(ad,dce), be -> bca"(C, Td, ξl) 
-        dTd = -ein"(ad,bca), be -> dce"(C, Tu, ξl)
+        dTu = -ein"(ad,dce),be -> bca"(C, Td, ξl) 
+        dTd = -ein"(ad,bca),be -> dce"(C, Tu, ξl)
         return NoTangent(), conj(dTu), conj(dTd), NoTangent()...
     end
     return (λl, C), back

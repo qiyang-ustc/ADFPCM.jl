@@ -9,10 +9,11 @@ end
 
 function logZ2(rt::FPCMRuntime)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
-    ACu = ein"(ed,dcb),ba->eca"(Cru,Tu,Cul)
-    ACd = ein"(ab,bcd),de->ace"(Cld,Td,Cdr)
-    田 = ein"abc,cba->"(Emap(Tl, ACu, ACd, M), Tr)[]
-    n = ein"((cba,adf),fbe),edc->"(ACu, Tl, ACd, Tr)[]
+    _, E = Eenv(Tu, Td, M, ein"ij,jkl,lp->ikp"(Cul,Tl,Cul))
+    _, C = Cenv(Tu, Td, Cul*Cld)
+
+    田 = ein"abc,abc->"(Emap(E, Tu, Td, M), conj(E))[]
+    n = ein"ab,ab->"(Cmap(C, Tu, Td), conj(C))[]
 
     return log(abs(田/n))
 end

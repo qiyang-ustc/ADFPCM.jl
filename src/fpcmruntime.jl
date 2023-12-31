@@ -39,6 +39,8 @@ function FPCMRuntime(M, chkp_file::String, Params)
     Params.verbose && println("fpcm environment load from $(chkp_file), set up χ=$(Params.χ) is blocked ->") 
     if typeof(M) <: CuArray
         rt = FPCMRuntime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Tu), CuArray(rt.Tl), CuArray(rt.Td), CuArray(rt.Tr))
+    else
+        rt = FPCMRuntime(M, rt.Cul, rt.Cld, rt.Cdr, rt.Cru, rt.Tu, rt.Tl, rt.Td, rt.Tr)
     end  
     return rt
 end
