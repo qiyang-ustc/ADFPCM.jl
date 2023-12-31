@@ -1,21 +1,25 @@
 export nonnormality, mcform, expand
 
 function logZ(rt::FPCMRuntime)
-    @unpack M, Cul, Cld, Tu, Tl, Td = rt
-    λT , _ = Eenv(Tu, Td, M, ein"ij,jkl,lp->ikp"(Cul,Tl,Cul))
-    λL , _ = Cenv(Tu, Td, Cul*Cld)
-    return log(abs(λT/λL))
-end
-
-function logZ2(rt::FPCMRuntime)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
-    _, E = Eenv(Tu, Td, M, ein"ij,jkl,lp->ikp"(Cul,Tl,Cul))
-    _, C = Cenv(Tu, Td, Cul*Cld)
 
-    田 = ein"abc,abc->"(Emap(E, Tu, Td, M), conj(E))[]
-    n = ein"ab,ab->"(Cmap(C, Tu, Td), conj(C))[]
+    # alternative implementation easier but slow 
+    # λM, _ = Eenv(Tu, Td, M, ein"ij,jkl,lp->ikp"(Cul,Tl,Cul))
+    # λN, _ = Cenv(Tu, Td, Cul*Cld)
 
-    return log(abs(田/n))
+    E = ein"(ab,bcd),de->ace"(Cul,Tl,Cld)
+    ∃ = ein"(ab,bcd),de->ace"(Cdr,Tr,Cru)
+    田 = ein"abc,cba->"(Emap(E, Tu, Td, M), ∃)[]
+    日 = ein"abc,cba->"(E,∃)[]
+    λM = 田/日
+
+    C = ein"ab,bc->ac"(Cul,Cld)
+    Ɔ = ein"ab,bc->ac"(Cdr,Cru)
+    日 = ein"ab,ba->"(Cmap(C, Tu, Td), Ɔ)[]
+    口 = ein"ab,ba->"(C,Ɔ)[]
+    λN = 日/口
+
+    return log(abs(λM/λN))
 end
 
 function nonnormality(rt)
