@@ -5,7 +5,7 @@
     │      │       
     p──────┴──────l
 """
-Cmap(x, Au, Ad) = ein"(kji,ip),pjl->kl"(Au, x, Ad)
+Cmap(x, Tu, Td) = ein"(kji,ip),pjl->kl"(Tu, x, Td)
 
 """
     i ────┬──── k 
@@ -14,22 +14,22 @@ Cmap(x, Au, Ad) = ein"(kji,ip),pjl->kl"(Au, x, Ad)
     │     b     
     p ────┴──── l 
 """
-Emap(x, Au, Ad, M) = ein"((kji,iap),jabc),pbl->kcl"(Au, x, M, Ad)
+Emap(x, Tu, Td, M) = ein"((kji,iap),jabc),pbl->kcl"(Tu, x, M, Td)
 
-function Cenv(Au, Ad, Cl)
-    λ, cl, info = eigsolve(x -> Cmap(x, Au, Ad), Cl, 1, :LM)
+function Cenv(Tu, Td, Cl)
+    λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM)
     info.converged == 0 && error("eigsolve did not converge")
     return λ[1], cl[1]
 end
 
-function Eenv(Pl⁺, Pl⁻, T, Al)
-    λ, al, info = eigsolve(x -> Emap(x, Pl⁺, Pl⁻, T), Al, 1, :LM)
+function Eenv(Tu, Td, M, Tl)
+    λ, al, info = eigsolve(x -> Emap(x, Tu, Td, M), Tl, 1, :LM)
     info.converged == 0 && error("eigsolve did not converge")
     return λ[1], al[1]
 end
 
-function getPL(Au, Ad, Cl)
-    λ, Cl = Cenv(Au, Ad, Cl)
+function getPL(Tu, Td, Cl)
+    λ, Cl = Cenv(Tu, Td, Cl)
     U, S, V = svd(Cl)
 
     sqrtS = sqrt.(S)
@@ -40,19 +40,19 @@ function getPL(Au, Ad, Cl)
     Cul⁺ = Diagonal(sqrtS⁺) * U'
     Cdl⁺ = V * Diagonal(sqrtS⁺)
 
-    Pl⁺ = ein"(pl,lkj),ji->pki"(Cul⁺,Au,Cul)/sqrt(λ)
-    Pl⁻ = ein"(ij,jkl),lp->ikp"(Cdl,Ad,Cdl⁺)/sqrt(λ)
+    Pl⁺ = ein"(pl,lkj),ji->pki"(Cul⁺,Tu,Cul)/sqrt(λ)
+    Pl⁻ = ein"(ij,jkl),lp->ikp"(Cdl,Td,Cdl⁺)/sqrt(λ)
     
     return Cul, Cdl, Pl⁺, Pl⁻
 end
 
 function leftmove(rt)
-    @unpack M, Cul, Cld, Cdr, Cru, Au, Al, Ad, Ar = rt
-    Cul, Cld, Pl⁺, Pl⁻ = getPL(Au, Ad, Cul*Cld)
+    @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
+    Cul, Cld, Pl⁺, Pl⁻ = getPL(Tu, Td, Cul*Cld)
 
-    _, Cul = Cenv(Au, Pl⁻, Cul)
-    _, Cld = Cenv(Pl⁺, Ad, Cld)
-    _, Al = Eenv(Pl⁺, Pl⁻, M, Al)
+    _, Cul = Cenv(Tu, Pl⁻, Cul)
+    _, Cld = Cenv(Pl⁺, Td, Cld)
+    _, Tl = Eenv(Pl⁺, Pl⁻, M, Tl)
 
-    return FPCMRuntime(M, Cul, Cld, Cdr, Cru, Au, Al, Ad, Ar)
+    return FPCMRuntime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
 end

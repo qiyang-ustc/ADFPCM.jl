@@ -21,22 +21,22 @@ using OMEinsum
     @test rt.Cld ≈ C
     @test rt.Cdr ≈ C
     @test rt.Cru ≈ C
-    @test rt.Au ≈ A
-    @test rt.Al ≈ A
-    @test rt.Ad ≈ A
-    @test rt.Ar ≈ A
+    @test rt.Tu ≈ A
+    @test rt.Tl ≈ A
+    @test rt.Td ≈ A
+    @test rt.Tr ≈ A
 end
 
 @testset "cycle with $atype" for atype in [Array]
     χ,D = 3,2
 
-    Au = atype(rand(χ,D,χ))
-    Ad = atype(rand(χ,D,χ))
+    Tu = atype(rand(χ,D,χ))
+    Td = atype(rand(χ,D,χ))
     C = atype(rand(χ,χ))
     E = atype(rand(χ,D,χ))
     M = atype(rand(D,D,D,D))
 
-    rt = FPCMRuntime(M,C,C,C,C,Au,Au,Au,Au)
+    rt = FPCMRuntime(M,C,C,C,C,Tu,Td,Tu,Td)
     rt = cycle(rt)
 
     @test rt.M ≈ permutedims(M,(2,3,4,1))
@@ -44,22 +44,22 @@ end
     @test rt.Cld ≈ C
     @test rt.Cdr ≈ C
     @test rt.Cru ≈ C
-    @test rt.Au ≈ Au
-    @test rt.Al ≈ Au
-    @test rt.Ad ≈ Au
-    @test rt.Ar ≈ Au
+    @test rt.Tu ≈ Td
+    @test rt.Tl ≈ Tu
+    @test rt.Td ≈ Td
+    @test rt.Tr ≈ Tu
 end
 
 @testset "leftmove with $atype" for atype in [Array]
     χ,D = 3,2
 
-    Au = atype(rand(ComplexF64,χ,D,χ))
-    Ad = atype(rand(ComplexF64,χ,D,χ))
+    Tu = atype(rand(ComplexF64,χ,D,χ))
+    Td = atype(rand(ComplexF64,χ,D,χ))
     C = atype(rand(ComplexF64,χ,χ))
     E = atype(rand(ComplexF64,χ,D,χ))
     M = atype(rand(ComplexF64,D,D,D,D))
 
-    rt = FPCMRuntime(M,C,C,C,C,Au,Au,Au,Au)
+    rt = FPCMRuntime(M,C,C,C,C,Tu,Tu,Tu,Tu)
     rt = leftmove(rt)
 
     @test rt isa FPCMRuntime
@@ -71,9 +71,9 @@ end
 
     M = atype(rand(ComplexF64,D,D,D,D))
     C = atype(rand(ComplexF64,χ,χ))
-    A = atype(rand(ComplexF64,χ,D,χ))
+    T = atype(rand(ComplexF64,χ,D,χ))
 
-    rt = FPCMRuntime(M,C,C,C,C,A,A,A,A)
+    rt = FPCMRuntime(M,C,C,C,C,T,T,T,T)
     @test isreal(logZ(rt))
 end
 

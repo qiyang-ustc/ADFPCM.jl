@@ -1,17 +1,17 @@
 export nonnormality, mcform, expand
 
 function logZ(rt::FPCMRuntime)
-    @unpack M, Cul, Cld, Au, Al, Ad = rt
-    λT , _ = Eenv(Au, Ad, M, ein"ij,jkl,lp->ikp"(Cul,Al,Cul))
-    λL , _ = Cenv(Au, Ad, Cul*Cld)
+    @unpack M, Cul, Cld, Tu, Tl, Td = rt
+    λT , _ = Eenv(Tu, Td, M, ein"ij,jkl,lp->ikp"(Cul,Tl,Cul))
+    λL , _ = Cenv(Tu, Td, Cul*Cld)
     return log(abs(λT/λL))
 end
 
 function nonnormality(rt)
-    @unpack M, Au, Ad, Al = rt
-    λw, _, _ = eigsolve(x -> Emap(x, Au, Ad, M), Al, 1, :LM)
-    λs, _, _ = eigsolve(x -> Emap(Emap(x, Au, Ad, M),permutedims(Au,(3,2,1)),
-    permutedims(Ad,(3,2,1)), permutedims(M,(1,4,3,2))), Al, 1, :LM)
+    @unpack M, Tu, Td, Tl = rt
+    λw, _, _ = eigsolve(x -> Emap(x, Tu, Td, M), Tl, 1, :LM)
+    λs, _, _ = eigsolve(x -> Emap(Emap(x, Tu, Td, M),permutedims(Tu,(3,2,1)),
+    permutedims(Td,(3,2,1)), permutedims(M,(1,4,3,2))), Tl, 1, :LM)
     return sqrt(abs(λs[1]))/abs(λw[1])
 end
 
@@ -41,11 +41,11 @@ function expand(rt,χ,ϵ=1E-7)
         return typeof(A)(A⁺)
     end
 
-    @unpack M, Cul, Cld, Cdr, Cru, Au, Al, Ad, Ar = rt
+    @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
     Cul, Cld, Cdr, Cru = map(C->expand_c(C,χ), (Cul, Cld, Cdr, Cru))
-    Au, Al, Ad, Ar = map(A->expand_a(A,χ), (Au, Al, Ad, Ar))
+    Tu, Tl, Td, Tr = map(A->expand_a(A,χ), (Tu, Tl, Td, Tr))
 
-    return FPCMRuntime(M, Cul, Cld, Cdr, Cru, Au, Al, Ad, Ar)
+    return FPCMRuntime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
 end
 
 logentry(i, err, freenergy, nn) = @sprintf("i = %d,\terr = %.3e,\tlogZ = %.15f,\tnonnormality=%.3f\n", i, err, freenergy, nn)

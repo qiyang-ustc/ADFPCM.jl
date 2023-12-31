@@ -4,10 +4,10 @@ struct FPCMRuntime{MT <: AbstractArray{<:Number, 4}, CT <: AbstractArray{<:Numbe
     Cld::CT
     Cdr::CT
     Cru::CT
-    Au::ET
-    Al::ET
-    Ad::ET
-    Ar::ET
+    Tu::ET
+    Tl::ET
+    Td::ET
+    Tr::ET
 end
 
 @with_kw mutable struct Params
@@ -28,22 +28,22 @@ function FPCMRuntime(M, ::Val{:random}, Params)
     χ = Params.χ
     D = size(M,1)
     C = rand!(similar(M,χ,χ))
-    A = rand!(similar(M,χ,D,χ))
+    T = rand!(similar(M,χ,D,χ))
     Params.verbose && println("random initial fpcm_χ$(χ) environment-> ")
 
-    return FPCMRuntime(M, C, C, C, C, A, A, A, A)
+    return FPCMRuntime(M, C, C, C, C, T, T, T, T)
 end
 
 function FPCMRuntime(M, chkp_file::String, Params)
     rt = loadtype(chkp_file, FPCMRuntime)
     Params.verbose && println("fpcm environment load from $(chkp_file), set up χ=$(Params.χ) is blocked ->") 
     if typeof(M) <: CuArray
-        rt = FPCMRuntime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Au), CuArray(rt.Al), CuArray(rt.Ad), CuArray(rt.Ar))
+        rt = FPCMRuntime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Tu), CuArray(rt.Tl), CuArray(rt.Td), CuArray(rt.Tr))
     end  
     return rt
 end
 
-cycle(rt::FPCMRuntime) = FPCMRuntime(permutedims(rt.M,(2,3,4,1)), rt.Cld, rt.Cdr, rt.Cru, rt.Cul, rt.Al, rt.Ad, rt.Ar, rt.Au)
+cycle(rt::FPCMRuntime) = FPCMRuntime(permutedims(rt.M,(2,3,4,1)), rt.Cld, rt.Cdr, rt.Cru, rt.Cul, rt.Tl, rt.Td, rt.Tr, rt.Tu)
 
 rotatemove = cycle ∘ leftmove
 rightmove = leftmove ∘ cycle ∘ cycle
@@ -73,7 +73,8 @@ function FPCM(M, rt::FPCMRuntime, Params)
 
         i % Params.output_interval == 0 && print(logentry(i, err, freenergy, nn))
         if Params.ifsave && err < Params.savetol && (i % Params.save_interval == 0 || err < Params.tol)
-            rts = FPCMRuntime(Array(M), Array(rt.Cul), Array(rt.Cld), Array(rt.Cdr), Array(rt.Cru), Array(rt.Au), Array(rt.Al), Array(rt.Ad), Array(rt.Ar))
+            rts = FPCMRuntime(Array(M), Array(rt.Cul), Array(rt.Cld), Array(rt.Cdr), Array(rt.Cru), Array(rt.Tu), Array(rt.Tl), Array(rt.Td), Array(rt.Tr))
+            isdir(Params.outfolder) || mkdir(Params.outfolder)
             out_chkp_file = Params.outfolder*"/χ$(Params.χ).h5"
             savetype(out_chkp_file, rts, FPCMRuntime)
 
