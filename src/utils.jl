@@ -23,10 +23,14 @@ function logZ(rt::FPCMRuntime)
 end
 
 function nonnormality(rt)
-    @unpack M, Tu, Td, Tl = rt
-    λw, _, _ = eigsolve(x -> Emap(x, Tu, Td, M), Tl, 1, :LM)
-    λs, _, _ = eigsolve(x -> Emap(Emap(x, Tu, Td, M),permutedims(Tu,(3,2,1)),
-    permutedims(Td,(3,2,1)), permutedims(M,(1,4,3,2))), Tl, 1, :LM)
+    # Very costful calculation
+    @unpack M, Cul, Cld, Tu, Td, Tl = rt
+    
+    Cul, Cld, Pl⁺, Pl⁻ = getPL(Tu, Td, Cul*Cld)
+    λw, _, _ = eigsolve(x -> Emap(x, Pl⁺, Pl⁻, M), Tl, 1, :LM)
+    λs, _, _ = eigsolve(x -> Emap(Emap(x, Pl⁺, Pl⁻, M),
+    permutedims(Pl⁺,(3,2,1)),
+    permutedims(Pl⁻,(3,2,1)), permutedims(M,(1,4,3,2))), Tl, 1, :LM)
     return sqrt(abs(λs[1]))/abs(λw[1])
 end
 
@@ -63,4 +67,4 @@ function expand(rt,χ,ϵ=1E-7)
     return FPCMRuntime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
 end
 
-logentry(i, err, freenergy, nn) = @sprintf("i = %d,\terr = %.3e,\tlogZ = %.15f,\tnonnormality=%.3f\n", i, err, freenergy, nn)
+logentry(i, err, freenergy, nn) = @sprintf("i = %5d,\terr = %.3e,\tlogZ = %.15f,\tnonnormality=%.3f\n", i, err, freenergy, nn)
