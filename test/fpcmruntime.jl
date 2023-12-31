@@ -86,6 +86,8 @@ end
     M[1,1,1,2]=1.0
     M = atype(M)
     χ = 16
-    rt = FPCM(M, ADFPCM.Params(χ=χ, ifsave=false))
+    params = ADFPCM.Params(χ=χ, tol=1e-10, ifsave=false)
+    rt = initialize_runtime(M, params)
+    rt = FPCM(rt, params)
     @test logZ(rt) ≈ 0.29152163577 atol = 1e-4
 end
