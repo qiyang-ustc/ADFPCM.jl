@@ -1,20 +1,25 @@
 """
-    i──────┬──────k
-    │      │       
-    │      j       
-    │      │       
-    p──────┴──────l
-"""
-Cmap(x, Tu, Td) = ein"(kji,ip),pjl->kl"(Tu, x, Td)
+tensor order graph: from left to right, top to bottom. 
+tensor index order: anti-clockwise
+```
+a ────┬──── c    a──────┬──────b   
+│     b     │    │      │      │                     
+├─ d ─┼─ e ─┤    │      c      │                  
+│     g     │    │      │      │  
+f ────┴──── h    d──────┴──────e   
 
+a ────┬──── c  
+│     b     │
+├─ d ─┼─ e ─┤
+│     f     │
+├─ g ─┼─ h ─┤           
+│     i     │
+j ────┴──── k     
+```
 """
-    i ────┬──── k 
-    │     j     
-    ├─ a ─┼─ c  
-    │     b     
-    p ────┴──── l 
-"""
-Emap(x, Tu, Td, M) = ein"((kji,iap),jabc),pbl->kcl"(Tu, x, M, Td)
+
+Cmap(x, Tu, Td) = ein"(bca,ad),dce->be"(Tu, x, Td)
+Emap(x, Tu, Td, M) = ein"((cba,adf),bdge),fgh->ceh"(Tu, x, M, Td)
 
 function Cenv(Tu, Td, Cl)
     λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM)

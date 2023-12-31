@@ -7,6 +7,16 @@ function logZ(rt::FPCMRuntime)
     return log(abs(λT/λL))
 end
 
+function logZ2(rt::FPCMRuntime)
+    @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
+    ACu = ein"(ed,dcb),ba->eca"(Cru,Tu,Cul)
+    ACd = ein"(ab,bcd),de->ace"(Cld,Td,Cdr)
+    田 = ein"abc,cba->"(Emap(Tl, ACu, ACd, M), Tr)[]
+    n = ein"((cba,adf),fbe),edc->"(ACu, Tl, ACd, Tr)[]
+
+    return log(abs(田/n))
+end
+
 function nonnormality(rt)
     @unpack M, Tu, Td, Tl = rt
     λw, _, _ = eigsolve(x -> Emap(x, Tu, Td, M), Tl, 1, :LM)

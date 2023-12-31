@@ -1,5 +1,7 @@
 module ADFPCM
     using Reexport
+    using ChainRulesCore
+    using Zygote
 
     export FPCMRuntime, FPCM, initialize_runtime
 
@@ -10,5 +12,7 @@ module ADFPCM
     include("fpcmruntime.jl")
     include("utils.jl")
     include("h5api.jl")
-    
+    include("cudapatch.jl")
+    include("autodiff.jl")
+    include("interface.jl")
 end
