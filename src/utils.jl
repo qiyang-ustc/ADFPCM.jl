@@ -8,9 +8,9 @@ function logZ(rt::FPCMRuntime)
     # λN, _ = Cenv(Tu, Td, Cul*Cld)
 
     E = ein"(ab,bcd),de->ace"(Cul,Tl,Cld)
-    ∃ = ein"(ab,bcd),de->ace"(Cdr,Tr,Cru)
-    田 = ein"abc,cba->"(Emap(E, Tu, Td, M), ∃)[]
-    日 = ein"abc,cba->"(E,∃)[]
+    Ǝ = ein"(ab,bcd),de->ace"(Cdr,Tr,Cru)
+    田 = ein"abc,cba->"(Emap(E, Tu, Td, M), Ǝ)[]
+    日 = ein"abc,cba->"(E,Ǝ)[]
     λM = 田/日
 
     C = ein"ab,bc->ac"(Cul,Cld)
