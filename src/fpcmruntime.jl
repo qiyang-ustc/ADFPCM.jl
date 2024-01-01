@@ -72,6 +72,11 @@ function FPCM(M, rt::FPCMRuntime, Params)
         err = abs(freenergy_new - freenergy)
         freenergy = freenergy_new
 
+        FileIO.open("./log/error.log","a") do fid
+            write(fid,"$(err)\n")
+            write(fid,"$(err)\n")
+        end
+
         nn = Zygote.@ignore nonnormality(rt)
 
         Zygote.@ignore begin
