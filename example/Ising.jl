@@ -1,5 +1,5 @@
 using ADFPCM
-using ADFPCM: cycle, logZ, logZ2
+using ADFPCM: cycle, logZ
 using Zygote
 
 let
@@ -12,7 +12,7 @@ let
     function LogZ(β) 
         model = Ising(1, 1, β)
         M = atype(reshape(model_tensor(model, Val(:bulk)), 2,2,2,2))
-        logZ2(FPCM(M, ADFPCM.Params(χ=χ, ifsave=true, maxiter=1000, miniter=10, 
+        logZ(FPCM(M, ADFPCM.Params(χ=χ, ifsave=true, maxiter=1000, miniter=10, 
                                    infolder="./data/$model/")))
     end
   
