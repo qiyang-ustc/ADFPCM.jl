@@ -53,7 +53,7 @@ end
 
 function leftmove(rt)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
-    Cul, Cld, Pl⁺, Pl⁻ = getPL(Tu, Td, Cul*Cld)
+    Cul, Cld, Pl⁺, Pl⁻ = Zygote.@ignore getPL(Tu, Td, Cul*Cld)
 
     _, Cul = Cenv(Tu, Pl⁻, Cul)
     _, Cld = Cenv(Pl⁺, Td, Cld)
