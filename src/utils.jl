@@ -18,6 +18,15 @@ function logZ2(rt::FPCMRuntime)
     return log(abs(田/n))
 end
 
+function convergence(Tl,nTl,rt::FPCMRuntime)
+    @unpack Cld, Cdr= rt
+    λT1,_ = Cenv(Tl, permutedims(conj(nTl),(3,2,1)), Cld*Cdr)
+    λT2,_ = Cenv(Tl, permutedims(conj(Tl),(3,2,1)), Cld*Cdr)
+    λT3,_ = Cenv(nTl, permutedims(conj(nTl),(3,2,1)), Cld*Cdr)
+    movefidelity = abs(1-abs(λT1*λT1/λT2/λT3))
+    return movefidelity
+end
+
 function nonnormality(rt)
     # Very costful calculation
     @unpack M, Cul, Cld, Tu, Td, Tl = rt
@@ -46,13 +55,13 @@ end
 function expand(rt,χ,ϵ=1E-7)
     function expand_c(C,χ)
         C⁺ = ϵ*randn(eltype(C),χ,χ)
-        C⁺[1:size(C,1),1:size(C,2)] .= C
+        C⁺[1:size(C,1),1:size(C,2)] .= Array(C)
         return typeof(C)(C⁺)
     end
 
     function expand_a(A,χ)
         A⁺ = ϵ*randn(eltype(A),χ,size(A,2),χ)
-        A⁺[1:size(A,1),1:size(A,2),1:size(A,3)] .= A
+        A⁺[1:size(A,1),1:size(A,2),1:size(A,3)] .= Array(A)
         return typeof(A)(A⁺)
     end
 

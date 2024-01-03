@@ -8,8 +8,9 @@ module ADFPCM
     @reexport using CUDA, LinearAlgebra, OMEinsum, KrylovKit
     @reexport using Parameters, Random, HDF5, FileIO, Printf
 
+    include("FPCMRuntime.jl")
     include("environment.jl")
-    include("fpcmruntime.jl")
+    include("fpcm.jl")
     include("utils.jl")
     include("h5api.jl")
     include("cudapatch.jl")

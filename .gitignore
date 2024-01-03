@@ -6,5 +6,6 @@
 *.log
 *.out
 data
+plotdata
 plot
 log

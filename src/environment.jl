@@ -21,14 +21,14 @@ j ────┴──── k
 Cmap(x, Tu, Td) = ein"(bca,ad),dce->be"(Tu, x, Td)
 Emap(x, Tu, Td, M) = ein"((cba,adf),bdge),fgh->ceh"(Tu, x, M, Td)
 
-function Cenv(Tu, Td, Cl)
-    λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM;tol=1E-9)
+function Cenv(Tu, Td, Cl;tol=1E-12)
+    λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM,tol=tol)
     info.converged == 0 && error("eigsolve did not converge")
     return λ[1], cl[1]
 end
 
-function Eenv(Tu, Td, M, Tl)
-    λ, al, info = eigsolve(x -> Emap(x, Tu, Td, M), Tl, 1, :LM;tol=1E-9)
+function Eenv(Tu, Td, M, Tl;tol=1E-12)
+    λ, al, info = eigsolve(x -> Emap(x, Tu, Td, M), Tl, 1, :LM,tol=tol)
     info.converged == 0 && error("eigsolve did not converge")
     return λ[1], al[1]
 end
@@ -51,18 +51,24 @@ function getPL(Tu, Td, Cl)
     return Cul, Cdl, Pl⁺, Pl⁻
 end
 
-function leftmove(rt)
+
+function leftmove(t::Tuple{Float64,FPCMRuntime}) 
+    err, rt = t
+    derr,rt = leftmove(rt)
+    return err+derr, rt
+end
+
+function leftmove(rt::FPCMRuntime)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
     Cul, Cld, Pl⁺, Pl⁻ = getPL(Tu, Td, Cul*Cld)
 
     λCul, Cul = Cenv(Tu, Pl⁻, Cul)
     λCld, Cld = Cenv(Pl⁺, Td, Cld)
-
     λTl, nTl = Eenv(Pl⁺, Pl⁻, M, Tl)
-
-    movefiedelity = abs(dot(nTl, Tl)/norm(nTl)/norm(Tl))
+    
+    err = convergence(nTl,Tl,rt)
     FileIO.open("./log/fidelity.log","a") do fid
-        write(fid,"$(movefiedelity)\n")
+        write(fid,"$(err)\n")
     end
     Tl = nTl
 
@@ -74,5 +80,5 @@ function leftmove(rt)
         write(fid,"$(convergence_Cul),$(convergence_Cld),$(convergence_Tl)\n")
     end
 
-    return FPCMRuntime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
+    return err, FPCMRuntime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
 end

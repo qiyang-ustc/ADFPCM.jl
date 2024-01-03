@@ -1,0 +1,60 @@
+struct FPCMRuntime{MT <: AbstractArray{<:Number, 4}, CT <: AbstractArray{<:Number, 2}, ET <: AbstractArray{<:Number, 3}}
+    M::MT
+    Cul::CT
+    Cld::CT
+    Cdr::CT
+    Cru::CT
+    Tu::ET
+    Tl::ET
+    Td::ET
+    Tr::ET
+end
+
+@with_kw mutable struct Params
+    χ::Int = 16
+    tol::Float64 = 1e-14
+    maxiter::Int = 1000
+    miniter::Int = 100
+    output_interval::Int = 1
+    ifsave::Bool = true
+    savetol::Float64 = 1e-1
+    save_interval::Int = 10
+    infolder = "./data/"
+    outfolder = infolder
+    verbose::Bool = true
+end
+
+function FPCMRuntime(M, ::Val{:random}, Params)
+    χ = Params.χ
+    D = size(M,1)
+    C = rand!(similar(M,χ,χ))
+    T = rand!(similar(M,χ,D,χ))
+    Params.verbose && println("random initial fpcm_χ$(χ) environment-> ")
+
+    return FPCMRuntime(M, C, C, C, C, T, T, T, T)
+end
+
+function FPCMRuntime(M, chkp_file::String, Params)
+    rt = loadtype(chkp_file, FPCMRuntime)
+    Params.verbose && println("fpcm environment load from $(chkp_file), set up χ=$(Params.χ) is blocked ->") 
+    if typeof(M) <: CuArray
+        rt = FPCMRuntime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Tu), CuArray(rt.Tl), CuArray(rt.Td), CuArray(rt.Tr))
+    else
+        rt = FPCMRuntime(M, rt.Cul, rt.Cld, rt.Cdr, rt.Cru, rt.Tu, rt.Tl, rt.Td, rt.Tr)
+    end  
+    return rt
+end
+
+
+function initialize_runtime(M, Params)
+    in_chkp_file = Params.infolder*"/χ$(Params.χ).h5"
+    if isfile(in_chkp_file)                               
+        rt = FPCMRuntime(M, in_chkp_file, Params)   
+    else
+        rt = FPCMRuntime(M, Val(:random), Params)
+    end
+    return rt
+end
+
+cycle(rt::FPCMRuntime) = FPCMRuntime(permutedims(rt.M,(2,3,4,1)), rt.Cld, rt.Cdr, rt.Cru, rt.Cul, rt.Tl, rt.Td, rt.Tr, rt.Tu)
+cycle(t::Tuple{Float64, FPCMRuntime}) = (t[1],cycle(t[2]))
