@@ -33,8 +33,9 @@ function Eenv(Tu, Td, M, Tl)
     return λ[1], al[1]
 end
 
-function getPL(Tu, Td, Cl)
-    λ, Cl = Cenv(Tu, Td, Cl)
+function getPL(rt::Runtime, ::FPCM)
+    @unpack Tu, Td, Cul, Cld = rt
+    λ, Cl = Cenv(Tu, Td, Cul*Cld)
     U, S, V = svd(Cl)
 
     sqrtS = sqrt.(S)
@@ -51,13 +52,49 @@ function getPL(Tu, Td, Cl)
     return Cul, Cdl, Pl⁺, Pl⁻
 end
 
-function leftmove(rt)
+function leftmove(rt::Runtime, alg::FPCM)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
-    Cul, Cld, Pl⁺, Pl⁻ = Zygote.@ignore getPL(Tu, Td, Cul*Cld)
+    Cul, Cld, Pl⁺, Pl⁻ = Zygote.@ignore getPL(rt, alg)
 
     _, Cul = Cenv(Tu, Pl⁻, Cul)
     _, Cld = Cenv(Pl⁺, Td, Cld)
     _, Tl = Eenv(Pl⁺, Pl⁻, M, Tl)
 
-    return FPCMRuntime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
+    return Runtime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
+end
+
+function getPL(rt::Runtime, ::CTMRG)
+    @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
+    χ,D = size(Tu)[[1,2]]
+
+    Cu1 = ein"(((abc,cd),def),begh),(((jkl,lm),mna),nhik)->fgij"(Tu,Cul,Tl,M,Tr,Cru,Tu,M)
+    Cd1 = ein"(((fed,dc),cba),gebh),(((anm,ml),lkj),ihnk)->fgij"(Tl,Cld,Td,M,Td,Cdr,Tr,M)
+
+    U, S, V = svd(reshape(ein"fgij,fgkl->klij"(Cu1,Cd1), χ*D,χ*D))
+
+    U = reshape(U[:,1:χ], D, χ, χ)
+    V = reshape(V[:,1:χ], D, χ, χ)
+    S = S[1:χ]
+
+    sqrtS = sqrt.(S)
+    sqrtS⁺ = 1.0 ./sqrtS .* (sqrtS.>1E-7)
+
+    Pl⁺ = ein"(fgij,ijk),kl->lgf"(Cu1, V, Diagonal(sqrtS⁺))
+    Pl⁻ = ein"(fgij,ijk),kl->fgl"(Cd1, conj(U), Diagonal(sqrtS⁺))
+    
+    return Pl⁺, Pl⁻
+end
+
+function leftmove(rt::Runtime, alg::CTMRG)
+    @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
+    Pl⁺, Pl⁻ = getPL(rt, alg)
+
+    Cul = Cmap(Cul, Tu, Pl⁻)
+    Cld = Cmap(Cld, Pl⁺, Td)
+    Tl = Emap(Tl, Pl⁺, Pl⁻, M)
+    normalize!(Cul)
+    normalize!(Cld)
+    normalize!(Tl)
+
+    return Runtime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
 end

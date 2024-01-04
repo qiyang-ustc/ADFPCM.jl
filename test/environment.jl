@@ -21,7 +21,7 @@ using OMEinsum
     @test λE * E ≈ ein"((iap,kji),jabc),pbl->kcl"(E, Tu, M, Td)
 end
 
-@testset "biorthogonal form with $atype" for atype in [Array]
+@testset "fpcm biorthogonal form with $atype" for atype in [Array]
     χ,D = 3,2
 
     Tu = atype(rand(χ,D,χ))
@@ -41,4 +41,23 @@ end
 
     temp = Array(ein"ij,jkl->ikl"(Cdl,Td) ./ ein"ijk,kl->ijl"(Pl⁻, Cdl))
     @test all(x -> x ≈ temp[1], temp)
+end
+
+@testset "ctm biorthogonal form with $atype" for atype in [Array]
+    χ,D = 3,2
+
+    M = atype(rand(D,D,D,D))
+    rt = initialize_runtime(M, ADFPCM.Params(χ=χ))
+    Pl⁺, Pl⁻ = getPL(rt)
+
+    # equals identity
+    @test Array(ein"pki,ikl->pl"(Pl⁺,Pl⁻)) ≈ I(χ)
+
+    # # Bring to biorthogonal form
+    # temp = Array(ein"ji,lkj->lki"(rt.Cul, rt.Tu) ./ ein"kji,lk->lji"(Pl⁺, rt.Cul))
+    # @show temp
+    # @test all(x -> x ≈ temp[1], temp)
+
+    # temp = Array(ein"ij,jkl->ikl"(Cdl,Td) ./ ein"ijk,kl->ijl"(Pl⁻, Cdl))
+    # @test all(x -> x ≈ temp[1], temp)
 end

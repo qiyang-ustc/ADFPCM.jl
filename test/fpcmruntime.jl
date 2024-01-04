@@ -6,7 +6,7 @@ using Random
 using Test
 using OMEinsum
 
-@testset "FPCMRuntime with $atype" for atype in [Array]
+@testset "Runtime with $atype" for atype in [Array]
     χ,D = 3,2
 
     A = atype(rand(χ,D,χ))
@@ -14,8 +14,8 @@ using OMEinsum
     E = atype(rand(χ,D,χ))
     M = atype(rand(D,D,D,D))
 
-    rt = FPCMRuntime(M,C,C,C,C,A,A,A,A)
-    @test rt isa FPCMRuntime
+    rt = Runtime(M,C,C,C,C,A,A,A,A)
+    @test rt isa Runtime
     @test rt.M ≈ M
     @test rt.Cul ≈ C
     @test rt.Cld ≈ C
@@ -36,7 +36,7 @@ end
     E = atype(rand(χ,D,χ))
     M = atype(rand(D,D,D,D))
 
-    rt = FPCMRuntime(M,C,C,C,C,Tu,Td,Tu,Td)
+    rt = Runtime(M,C,C,C,C,Tu,Td,Tu,Td)
     rt = cycle(rt)
 
     @test rt.M ≈ permutedims(M,(2,3,4,1))
@@ -59,10 +59,10 @@ end
     E = atype(rand(ComplexF64,χ,D,χ))
     M = atype(rand(ComplexF64,D,D,D,D))
 
-    rt = FPCMRuntime(M,C,C,C,C,Tu,Tu,Tu,Tu)
+    rt = Runtime(M,C,C,C,C,Tu,Tu,Tu,Tu)
     rt = leftmove(rt)
 
-    @test rt isa FPCMRuntime
+    @test rt isa Runtime
 end
 
 @testset "logZ" for Ni = [1], Nj = [1], atype = [Array]
@@ -73,7 +73,7 @@ end
     C = atype(rand(ComplexF64,χ,χ))
     T = atype(rand(ComplexF64,χ,D,χ))
 
-    rt = FPCMRuntime(M,C,C,C,C,T,T,T,T)
+    rt = Runtime(M,C,C,C,C,T,T,T,T)
     @test isreal(logZ(rt))
 end
 

@@ -1,6 +1,6 @@
 export nonnormality, mcform, expand
 
-function logZ(rt::FPCMRuntime)
+function logZ(rt::Runtime)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
 
     # alternative implementation easier but slow 
@@ -64,7 +64,7 @@ function expand(rt,χ,ϵ=1E-7)
     Cul, Cld, Cdr, Cru = map(C->expand_c(C,χ), (Cul, Cld, Cdr, Cru))
     Tu, Tl, Td, Tr = map(A->expand_a(A,χ), (Tu, Tl, Td, Tr))
 
-    return FPCMRuntime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
+    return Runtime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
 end
 
-logentry(i, err, freenergy, nn) = @sprintf("i = %5d,\terr = %.3e,\tlogZ = %.15f,\tnonnormality=%.3f\n", i, err, freenergy, nn)
+logentry(i, err, freenergy) = @sprintf("i = %5d,\terr = %.3e,\tlogZ = %.15f\n", i, err, freenergy)
