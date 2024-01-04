@@ -22,7 +22,7 @@ end
 
 function Runtime(M, chkp_file::String, alg)
     rt = loadtype(chkp_file, Runtime)
-    alg.verbose && println("fpcm environment load from $(chkp_file), set up χ=$(alg.χ) is blocked ->") 
+    alg.verbose && println("$alg environment load from $(chkp_file), set up χ=$(alg.χ) is blocked ->") 
     if typeof(M) <: CuArray
         rt = Runtime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Tu), CuArray(rt.Tl), CuArray(rt.Td), CuArray(rt.Tr))
     else

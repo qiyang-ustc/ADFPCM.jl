@@ -67,8 +67,10 @@ function getPL(rt::Runtime, ::CTMRG)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
     χ,D = size(Tu)[[1,2]]
 
-    Cu1 = ein"(((abc,cd),def),begh),(((jkl,lm),mna),nhik)->fgij"(Tu,Cul,Tl,M,Tr,Cru,Tu,M)
-    Cd1 = ein"(((fed,dc),cba),gebh),(((anm,ml),lkj),ihnk)->fgij"(Tl,Cld,Td,M,Td,Cdr,Tr,M)
+    # Cu1 = ein"(((abc,cd),def),begh),(((jkl,lm),mna),nhik)->fgij"(Tu,Cul,Tl,M,Tr,Cru,Tu,M)
+    # Cd1 = ein"(((fed,dc),cba),gebh),(((anm,ml),lkj),ihnk)->fgij"(Tl,Cld,Td,M,Td,Cdr,Tr,M)
+    Cu1 = ein"((jk,kih),hge),ef->fgij"(Cru,Tu,Tu,Cul)
+    Cd1 = ein"((fe,egh),hik),kj->fgij"(Cld,Td,Td,Cdr)
 
     U, S, V = svd(reshape(ein"fgij,fgkl->klij"(Cu1,Cd1), χ*D,χ*D))
 

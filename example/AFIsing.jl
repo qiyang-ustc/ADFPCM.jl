@@ -1,5 +1,6 @@
 using ADFPCM
-using ADFPCM: logZ
+using ADFPCM: log, overlap
+using Random
 
 let
     include("exampletensors.jl")
@@ -7,17 +8,19 @@ let
 
     β = 100
     atype = Array
-    # alg = CTMRG 
-    alg = FPCM
-    for χ in 2 .^ (4:4)
+    # alg = CTMRG
+    Random.seed!(666)
+    for χ in 16:1:32
         model = Ising_Triangle_bad2(1, 1, β)
         M = atype(reshape(model_tensor(model, Val(:Sbulk)), 2,2,2,2))
-        _, _, mcM = mcform(M)
-        params = alg(χ=χ, ifsave=true, maxiter=1000, tol =1e-10, infolder="./data/$model/$alg/")
-        
-        rt = initialize_runtime(mcM, params)
-        rt = env(rt, params)
+        # _, _, mcM = mcform(M)
+        # rt = env(M, FPCM(χ=χ, ifsave=true, verbose=true, maxiter=10, miniter=1, tol =1e-14, infolder="./data/$model/"))
+        rt = env(M, CTMRG(χ=χ,  ifsave=true, verbose=false, maxiter=1000, miniter=100, tol=1e-10, infolder="./data/$model/"))
+        # @show 
         # @show logZ(rt) - 0.3230659669
         println("$χ, $(logZ(rt)), ")
+        # Au = rt.Tu
+        # Ad = rt.Td
+        # @show overlap(Au, Ad)
     end
 end
