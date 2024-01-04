@@ -58,10 +58,8 @@ function FPCM(M, rt::FPCMRuntime, Params)
         err = abs(freenergy_new - freenergy)
         freenergy = freenergy_new
 
-        nn = Zygote.@ignore nonnormality(rt)
-
         Zygote.@ignore begin
-            Params.verbose && i % Params.output_interval == 0 && print(logentry(i, err, freenergy, nn))
+            Params.verbose && i % Params.output_interval == 0 && print(logentry(i, err, freenergy))
 
             if Params.ifsave && err < Params.savetol && (i % Params.save_interval == 0 || err < Params.tol)
                 rts = FPCMRuntime(Array(M), Array(rt.Cul), Array(rt.Cld), Array(rt.Cdr), Array(rt.Cru), Array(rt.Tu), Array(rt.Tl), Array(rt.Td), Array(rt.Tr))
@@ -70,13 +68,13 @@ function FPCM(M, rt::FPCMRuntime, Params)
                 savetype(out_chkp_file, rts, FPCMRuntime)
     
                 logfile = open(Params.outfolder*"/χ$(Params.χ).log", "a")
-                write(logfile, logentry(i, err, freenergy, nn))
+                write(logfile, logentry(i, err, freenergy))
                 close(logfile)
             end
         end
 
         if err < Params.tol && i > Params.miniter
-            Params.verbose && Zygote.@ignore print(logentry(i, err, freenergy, nn))
+            Params.verbose && Zygote.@ignore print(logentry(i, err, freenergy))
             break
         end
         

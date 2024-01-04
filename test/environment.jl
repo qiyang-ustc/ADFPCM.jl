@@ -1,24 +1,28 @@
 using ADFPCM
-using ADFPCM: Cenv, Eenv, getPL
+using ADFPCM: Cenv, Eenv, CTMenv, Cmap, Emap, CTMmap, getPL
 using CUDA
 using LinearAlgebra
 using Random
 using Test
 using OMEinsum
 
-@testset "Cenv and Eenv with $atype" for atype in [Array]
+@testset "Cenv, Eenv and CTMmap with $atype" for atype in [Array]
     χ,D = 3,2
 
     Tu = atype(rand(χ,D,χ))
+    Tl = atype(rand(χ,D,χ))
     Td = atype(rand(χ,D,χ))
+    Tr = atype(rand(χ,D,χ))
     C = atype(rand(χ,χ))
     E = atype(rand(χ,D,χ))
     M = atype(rand(D,D,D,D))
     λC, C = Cenv(Tu, Td, C)
     λE, E = Eenv(Tu, Td, M, E)
+    λCM, Cul = CTMenv(Tu, Tl, Td, Tr, M, C)
 
-    @test λC * C ≈ ein"ip,kji,pjl->kl"(C, Tu, Td)
-    @test λE * E ≈ ein"((iap,kji),jabc),pbl->kcl"(E, Tu, M, Td)
+    @test λC * C ≈ Cmap(C, Tu, Td)
+    @test λE * E ≈ Emap(E, Tu, Td, M)
+    @test λCM * Cul ≈ CTMmap(Cul, Tu, Tl, Td, Tr, M)
 end
 
 @testset "biorthogonal form with $atype" for atype in [Array]

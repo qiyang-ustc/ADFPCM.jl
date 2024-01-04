@@ -67,4 +67,4 @@ function expand(rt,χ,ϵ=1E-7)
     return FPCMRuntime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
 end
 
-logentry(i, err, freenergy, nn) = @sprintf("i = %5d,\terr = %.3e,\tlogZ = %.15f,\tnonnormality=%.3f\n", i, err, freenergy, nn)
+logentry(i, err, freenergy) = @sprintf("i = %5d,\terr = %.3e,\tlogZ = %.15f\n", i, err, freenergy)
