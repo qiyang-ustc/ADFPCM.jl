@@ -67,29 +67,17 @@ function expand(rt,χ,ϵ=1E-7)
     return Runtime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
 end
 
-function Ɔenv(Au, Ad, Ɔl)
-    Au = permutedims(Au,(3,2,1))
-    Ad = permutedims(Ad,(3,2,1))
-    return Cenv(Au, Ad, Ɔl)
-end
-
 function overlap(Au, Ad)
     χ = size(Au,1)
     C = rand(χ,χ)
-    _, FLu_n = Cenv(Au, conj(Au),C)
-    _, FRu_n = Ɔenv(Au, conj(Au),C)
-    nu = ein"(ad,bca),(dce,be) ->"(FLu_n,Au,conj(Au),FRu_n)[]/ein"ab,ab ->"(FLu_n,FRu_n)[]
+    nu = eigsolve(L -> ein"(ad,bca),ecd -> be"(L,Au,conj(Au)), C, 1, :LM)[1][1]
     Au /= sqrt(nu)
 
-    _, FLd_n = Cenv(Ad, conj(Ad),C)
-    _, FRd_n = Ɔenv(Ad, conj(Ad),C)
-    nd = ein"(ad,bca),(dce,be) ->"(FLd_n,Ad,conj(Ad),FRd_n)[]/ein"ab,ab ->"(FLd_n,FRd_n)[]
+    nd = eigsolve(L -> ein"(ad,acb),dce -> be"(L,Ad,conj(Ad)), C, 1, :LM)[1][1]
     Ad /= sqrt(nd)
 
-    _, FLud_n = Cenv(Au, conj(Ad),C)
-    _, FRud_n = Ɔenv(Au, conj(Ad),C)
-
-   abs(ein"(ad,bca),(dce,be) ->"(FLud_n,Au,conj(Ad),FRud_n)[]/ein"ab,ab ->"(FLud_n,FRud_n)[])
+    nud = eigsolve(L -> ein"(ad,bca),dce -> be"(L,Au,conj(Ad)), C, 1, :LM)[1][1]
+    abs(nud)
 end
 
 

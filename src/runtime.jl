@@ -15,14 +15,15 @@ function Runtime(M, ::Val{:random}, alg)
     D = size(M,1)
     C = rand!(similar(M,χ,χ))
     T = rand!(similar(M,χ,D,χ))
-    alg.verbose && println("random initial fpcm_χ$(χ) environment-> ")
+    alg.verbose && printstyled("start $alg random initial fpcm_χ$(χ) environment->  \n"; bold=true, color=:green) 
+    
 
     return Runtime(M, C, C, C, C, T, T, T, T)
 end
 
 function Runtime(M, chkp_file::String, alg)
     rt = loadtype(chkp_file, Runtime)
-    alg.verbose && println("$alg environment load from $(chkp_file), set up χ=$(alg.χ) is blocked ->") 
+    alg.verbose && printstyled("start $alg environment load from $(chkp_file), set up χ=$(alg.χ) is blocked -> \n"; bold=true, color=:green) 
     if typeof(M) <: CuArray
         rt = Runtime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Tu), CuArray(rt.Tl), CuArray(rt.Td), CuArray(rt.Tr))
     else
@@ -52,6 +53,7 @@ function env(rt::Runtime, alg::Algorithm)
     freenergy = logZ(rt)
     for i = 1:alg.maxiter
         rt = cyclemove(rt, alg)
+        # rt = cyclemove(rt, CTMRG(χ=alg.χ))
         # rt = hvmove(rt)
         freenergy_new = logZ(rt)
         err = abs(freenergy_new - freenergy)
