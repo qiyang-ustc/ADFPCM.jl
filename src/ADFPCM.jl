@@ -1,8 +1,10 @@
 module ADFPCM
     using Reexport
     using ChainRulesCore
+    using JLD2
+    using TeneT
     using Zygote
-
+    
     export Runtime, FPCM, CTMRG, initialize_runtime, env
 
     @reexport using CUDA, LinearAlgebra, OMEinsum, KrylovKit

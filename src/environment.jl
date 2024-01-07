@@ -22,13 +22,13 @@ Cmap(x, Tu, Td) = ein"(bca,ad),dce->be"(Tu, x, Td)
 Emap(x, Tu, Td, M) = ein"((cba,adf),bdge),fgh->ceh"(Tu, x, M, Td)
 
 function Cenv(Tu, Td, Cl)
-    λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM;tol=1E-9)
+    λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM)
     info.converged == 0 && error("eigsolve did not converge")
     return λ[1], cl[1]
 end
 
 function Eenv(Tu, Td, M, Tl)
-    λ, al, info = eigsolve(x -> Emap(x, Tu, Td, M), Tl, 1, :LM;tol=1E-9)
+    λ, al, info = eigsolve(x -> Emap(x, Tu, Td, M), Tl, 1, :LM)
     info.converged == 0 && error("eigsolve did not converge")
     return λ[1], al[1]
 end
@@ -39,7 +39,13 @@ function getPL(rt::Runtime, ::FPCM)
     U, S, V = svd(Cl)
 
     sqrtS = sqrt.(S)
-    sqrtS⁺ = 1.0 ./sqrtS .* (sqrtS.>1E-7)
+    if typeof(sqrtS) <: U1Array
+        sqrtS⁺ = 1.0 ./sqrtS
+        sqrtS⁺.tensor[abs.(sqrtS⁺.tensor) .> 1E8] .= 0.0    
+    else
+        sqrtS⁺ = 1.0 ./sqrtS .* (sqrtS.>1E-7)
+    end
+
     Cul = U * Diagonal(sqrtS)
     Cdl = Diagonal(sqrtS) * V'
 
