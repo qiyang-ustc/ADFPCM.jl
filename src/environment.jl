@@ -36,7 +36,7 @@ end
 function getPL(rt::Runtime, ::FPCM)
     @unpack Tu, Td, Cul, Cld = rt
     λ, Cl = Cenv(Tu, Td, Cul*Cld)
-    U, S, V = svd(Cl)
+    U, S, V = svd(Array{ComplexF32}(Cl))
 
     sqrtS = sqrt.(S)
     sqrtS⁺ = 1.0 ./sqrtS .* (sqrtS.>1E-7)
