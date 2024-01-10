@@ -19,6 +19,6 @@ let
   
     @show LogZ(0.5) - 1.0257928172049902
 
-    # @show Zygote.gradient(LogZ, 0.5)[1] - 1.745564581767667
+    @show Zygote.gradient(LogZ, 0.5)[1] - 1.745564581767667
     
 end

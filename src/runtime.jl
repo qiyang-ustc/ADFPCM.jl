@@ -15,7 +15,7 @@ function Runtime(M, ::Val{:random}, alg)
     D = size(M,1)
     C = rand!(similar(M,χ,χ))
     T = rand!(similar(M,χ,D,χ))
-    alg.verbose && printstyled("start $alg random initial fpcm_χ$(χ) environment->  \n"; bold=true, color=:green) 
+    alg.verbose && Zygote.@ignore printstyled("start $alg random initial fpcm_χ$(χ) environment->  \n"; bold=true, color=:green) 
     
 
     return Runtime(M, C, C, C, C, T, T, T, T)
@@ -23,7 +23,7 @@ end
 
 function Runtime(M, chkp_file::String, alg)
     rt = loadtype(chkp_file, Runtime)
-    alg.verbose && printstyled("start $alg environment load from $(chkp_file), set up χ=$(alg.χ) is blocked -> \n"; bold=true, color=:green) 
+    alg.verbose && Zygote.@ignore printstyled("start $alg environment load from $(chkp_file), set up χ=$(alg.χ) is blocked -> \n"; bold=true, color=:green) 
     if typeof(M) <: CuArray
         rt = Runtime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Tu), CuArray(rt.Tl), CuArray(rt.Td), CuArray(rt.Tr))
     else
@@ -35,7 +35,8 @@ end
 cycle(rt::Runtime) = Runtime(permutedims(rt.M,(2,3,4,1)), rt.Cld, rt.Cdr, rt.Cru, rt.Cul, rt.Tl, rt.Td, rt.Tr, rt.Tu)
 rotatemove(rt, alg) = cycle(leftmove(rt, alg))
 rightmove(rt, alg) = leftmove(cycle(cycle(rt)), alg)
-cyclemove(rt, alg) = foldl(rotatemove, repeat([alg], 4), init=rt)
+# cyclemove(rt, alg) = foldl(rotatemove, repeat([alg], 4), init=rt) # have bugs for AD https://github.com/JuliaDiff/ChainRules.jl/pull/569
+cyclemove(rt, alg) = rotatemove(rotatemove(rotatemove(rotatemove(rt, alg), alg), alg), alg)
 hvmove(rt, alg) = cycle(rightmove(leftmove(rt, alg), alg))
 
 function initialize_runtime(M, alg)
