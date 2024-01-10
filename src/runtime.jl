@@ -53,7 +53,8 @@ end
 cycle(rt::Runtime) = Runtime(permutedims(rt.M,(2,3,4,1)), rt.Cld, rt.Cdr, rt.Cru, rt.Cul, rt.Tl, rt.Td, rt.Tr, rt.Tu)
 rotatemove(rt, alg) = cycle(leftmove(rt, alg))
 rightmove(rt, alg) = leftmove(cycle(cycle(rt)), alg)
-cyclemove(rt, alg) = foldl(rotatemove, repeat([alg], 4), init=rt)
+# cyclemove(rt, alg) = foldl(rotatemove, repeat([alg], 4), init=rt) # have bugs for AD https://github.com/JuliaDiff/ChainRules.jl/pull/569
+cyclemove(rt, alg) = rotatemove(rotatemove(rotatemove(rotatemove(rt, alg), alg), alg), alg)
 hvmove(rt, alg) = cycle(rightmove(leftmove(rt, alg), alg))
 randmove(rt, alg) = rand([cycle, cycle ∘ cycle ∘ cycle])(leftmove(rt, alg))
 
