@@ -36,21 +36,22 @@ end
 function getPL(rt::Runtime, ::FPCM)
     @unpack Tu, Td, Cul, Cld = rt
     λ, Cl = Cenv(Tu, Td, Cul*Cld)
+    Cl = Array{ComplexF32}(Cl)
     U, S, V = svd(Cl)
 
     sqrtS = sqrt.(S)
     if typeof(sqrtS) <: U1Array
-        sqrtS⁺ = 1.0 ./sqrtS
+        sqrtS⁺ = Array{ComplexF32}(1.0 ./sqrtS)
         sqrtS⁺.tensor[abs.(sqrtS⁺.tensor) .> 1E8] .= 0.0    
     else
         sqrtS⁺ = 1.0 ./sqrtS .* (sqrtS.>1E-7)
     end
 
-    Cul = U * Diagonal(sqrtS)
-    Cdl = Diagonal(sqrtS) * V'
+    Cul = Array{ComplexF64}(U * Diagonal(sqrtS))
+    Cdl = Array{ComplexF64}(Diagonal(sqrtS) * V')
 
-    Cul⁺ = Diagonal(sqrtS⁺) * U'
-    Cdl⁺ = V * Diagonal(sqrtS⁺)
+    Cul⁺ = Array{ComplexF64}(Diagonal(sqrtS⁺) * U')
+    Cdl⁺ = Array{ComplexF64}(V * Diagonal(sqrtS⁺))
 
     Pl⁺ = ein"(pl,lkj),ji->pki"(Cul⁺,Tu,Cul)/sqrt(λ)
     Pl⁻ = ein"(ij,jkl),lp->ikp"(Cdl,Td,Cdl⁺)/sqrt(λ)
