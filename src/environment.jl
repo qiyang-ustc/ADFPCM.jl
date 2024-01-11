@@ -33,6 +33,22 @@ function Eenv(Tu, Td, M, Tl)
     return λ[1], al[1]
 end
 
+"""
+```
+    ┌──a──┬──── b 
+    c     d     │ 
+    ├─ e ─┼─ f ─┤ 
+    │     g     h 
+    i ────┴──j  
+```
+"""
+CTMmap(x, Tu, Tl, Td, Tr, M) = ein"((((bda,ac),cei),degf),igj),hfb->hj"(Tu, x, Tl, M, Td, Tr)
+function CTMenv(Tu, Tl, Td, Tr, M, Cul)
+    λ, cul, info = eigsolve(x -> CTMmap(x, Tu, Tl, Td, Tr, M), Cul, 1, :LM)
+    info.converged == 0 && error("eigsolve did not converge")
+    return λ[1], cul[1]
+end
+
 function getPL(rt::Runtime, ::FPCM)
     @unpack Tu, Td, Cul, Cld = rt
     λ, Cl = Cenv(Tu, Td, Cul*Cld)
@@ -59,6 +75,11 @@ function leftmove(rt::Runtime, alg::FPCM)
     _, Cul = Cenv(Tu, Pl⁻, Cul)
     _, Cld = Cenv(Pl⁺, Td, Cld)
     _, Tl = Eenv(Pl⁺, Pl⁻, M, Tl)
+
+    # _, _, Pu⁺, Pu⁻ = Zygote.@ignore getPL(cycle(cycle(cycle(rt))), alg)
+    # _, _, Pd⁺, Pd⁻ = Zygote.@ignore getPL(cycle(rt), alg)
+    # _, Cul = CTMenv(Tu, Tl, Pl⁻, Pu⁺, M, Cul)
+    # _, Cld = CTMenv(Tl, Td, Pd⁻, Pl⁺, permutedims(M,(2,3,4,1)), Cld)
 
     return Runtime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
 end

@@ -9,7 +9,7 @@ let
     β = 100
     atype = Array
     # alg = CTMRG
-    Random.seed!(666)
+    Random.seed!(42)
     for χ in 32:1:32
         model = Ising_Triangle_bad2(1, 1, β)
         M = atype(reshape(model_tensor(model, Val(:Sbulk)), 2,2,2,2))
