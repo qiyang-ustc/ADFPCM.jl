@@ -22,13 +22,13 @@ Cmap(x, Tu, Td) = ein"(bca,ad),dce->be"(Tu, x, Td)
 Emap(x, Tu, Td, M) = ein"((cba,adf),bdge),fgh->ceh"(Tu, x, M, Td)
 
 function Cenv(Tu, Td, Cl)
-    λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM;tol=1E-9)
+    λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM)
     info.converged == 0 && error("eigsolve did not converge")
     return λ[1], cl[1]
 end
 
 function Eenv(Tu, Td, M, Tl)
-    λ, al, info = eigsolve(x -> Emap(x, Tu, Td, M), Tl, 1, :LM;tol=1E-9)
+    λ, al, info = eigsolve(x -> Emap(x, Tu, Td, M), Tl, 1, :LM)
     info.converged == 0 && error("eigsolve did not converge")
     return λ[1], al[1]
 end
@@ -67,10 +67,10 @@ function getPL(rt::Runtime, ::CTMRG)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
     χ,D = size(Tu)[[1,2]]
 
-    # Cu1 = ein"(((abc,cd),def),begh),(((jkl,lm),mna),nhik)->fgij"(Tu,Cul,Tl,M,Tr,Cru,Tu,M)
-    # Cd1 = ein"(((fed,dc),cba),gebh),(((anm,ml),lkj),ihnk)->fgij"(Tl,Cld,Td,M,Td,Cdr,Tr,M)
-    Cu1 = ein"((jk,kih),hge),ef->fgij"(Cru,Tu,Tu,Cul)
-    Cd1 = ein"((fe,egh),hik),kj->fgij"(Cld,Td,Td,Cdr)
+    Cu1 = ein"(((abc,cd),def),begh),(((jkl,lm),mna),nhik)->fgij"(Tu,Cul,Tl,M,Tr,Cru,Tu,M)
+    Cd1 = ein"(((fed,dc),cba),gebh),(((anm,ml),lkj),ihnk)->fgij"(Tl,Cld,Td,M,Td,Cdr,Tr,M)
+    # Cu1 = ein"((jk,kih),hge),ef->fgij"(Cru,Tu,Tu,Cul)
+    # Cd1 = ein"((fe,egh),hik),kj->fgij"(Cld,Td,Td,Cdr)
 
     U, S, V = svd(reshape(ein"fgij,fgkl->klij"(Cu1,Cd1), χ*D,χ*D))
 

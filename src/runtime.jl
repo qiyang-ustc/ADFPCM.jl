@@ -38,6 +38,7 @@ rightmove(rt, alg) = leftmove(cycle(cycle(rt)), alg)
 # cyclemove(rt, alg) = foldl(rotatemove, repeat([alg], 4), init=rt) # have bugs for AD https://github.com/JuliaDiff/ChainRules.jl/pull/569
 cyclemove(rt, alg) = rotatemove(rotatemove(rotatemove(rotatemove(rt, alg), alg), alg), alg)
 hvmove(rt, alg) = cycle(rightmove(leftmove(rt, alg), alg))
+randmove(rt, alg) = rand([cycle, cycle ∘ cycle, cycle ∘ cycle ∘ cycle])(leftmove(rt, alg))
 
 function initialize_runtime(M, alg)
     in_chkp_file = alg.infolder*"/χ$(alg.χ).h5"
@@ -55,7 +56,8 @@ function env(rt::Runtime, alg::Algorithm)
     for i = 1:alg.maxiter
         rt = cyclemove(rt, alg)
         # rt = cyclemove(rt, CTMRG(χ=alg.χ))
-        # rt = hvmove(rt)
+        # rt = hvmove(rt, alg)
+        # rt = randmove(rt, alg)
         freenergy_new = logZ(rt)
         err = abs(freenergy_new - freenergy)
         freenergy = freenergy_new

@@ -4,20 +4,20 @@ function logZ(rt::Runtime)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
 
     # alternative implementation easier but slow 
-    # λM, _ = Eenv(Tu, Td, M, ein"ij,jkl,lp->ikp"(Cul,Tl,Cul))
-    # λN, _ = Cenv(Tu, Td, Cul*Cld)
+    λM, _ = Eenv(Tu, Td, M, ein"ij,jkl,lp->ikp"(Cul,Tl,Cul))
+    λN, _ = Cenv(Tu, Td, Cul*Cld)
 
-    E = ein"(ab,bcd),de->ace"(Cul,Tl,Cld)
-    Ǝ = ein"(ab,bcd),de->ace"(Cdr,Tr,Cru)
-    田 = ein"abc,cba->"(Emap(E, Tu, Td, M), Ǝ)[]
-    日 = ein"abc,cba->"(E,Ǝ)[]
-    λM = 田/日
+    # E = ein"(ab,bcd),de->ace"(Cul,Tl,Cld)
+    # Ǝ = ein"(ab,bcd),de->ace"(Cdr,Tr,Cru)
+    # 田 = ein"abc,cba->"(Emap(E, Tu, Td, M), Ǝ)[]
+    # 日 = ein"abc,cba->"(E,Ǝ)[]
+    # λM = 田/日
 
-    C = ein"ab,bc->ac"(Cul,Cld)
-    Ɔ = ein"ab,bc->ac"(Cdr,Cru)
-    日 = ein"ab,ba->"(Cmap(C, Tu, Td), Ɔ)[]
-    口 = ein"ab,ba->"(C,Ɔ)[]
-    λN = 日/口
+    # C = ein"ab,bc->ac"(Cul,Cld)
+    # Ɔ = ein"ab,bc->ac"(Cdr,Cru)
+    # 日 = ein"ab,ba->"(Cmap(C, Tu, Td), Ɔ)[]
+    # 口 = ein"ab,ba->"(C,Ɔ)[]
+    # λN = 日/口
 
     return log(abs(λM/λN))
 end
