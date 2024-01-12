@@ -84,26 +84,60 @@ function leftmove(rt::Runtime, alg::FPCM)
     return Runtime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
 end
 
+## https://journals.aps.org/prb/abstract/10.1103/PhysRevB.98.235148 A1-A4
+# function getPL(rt::Runtime, ::CTMRG)
+#     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
+#     χ,D = size(Tu)[[1,2]]
+
+#     Cu1 = ein"(((abc,cd),def),begh),(((jkl,lm),mna),nhik)->fgij"(Tu,Cul,Tl,M,Tr,Cru,Tu,M)
+#     Cd1 = ein"(((fed,dc),cba),gebh),(((anm,ml),lkj),ihnk)->fgij"(Tl,Cld,Td,M,Td,Cdr,Tr,M)
+#     # Cu1 = ein"((jk,kih),hge),ef->fgij"(Cru,Tu,Tu,Cul)
+#     # Cd1 = ein"((fe,egh),hik),kj->fgij"(Cld,Td,Td,Cdr)
+
+#     U, S, V = svd(reshape(ein"fgij,fgkl->klij"(Cu1,Cd1), χ*D,χ*D))
+
+#     U = reshape(U[:,1:χ], D, χ, χ)
+#     V = reshape(V[:,1:χ], D, χ, χ)
+#     S = S[1:χ]
+
+#     sqrtS = sqrt.(S)
+#     sqrtS⁺ = 1.0 ./sqrtS .* (sqrtS.>1E-7)
+
+#     Pl⁺ = ein"(fgij,ijk),kl->lgf"(Cu1, V, Diagonal(sqrtS⁺))
+#     Pl⁻ = ein"(fgij,ijk),kl->fgl"(Cd1, conj(U), Diagonal(sqrtS⁺))
+    
+#     return Pl⁺, Pl⁻
+# end
+
+## https://journals.aps.org/prb/abstract/10.1103/PhysRevB.98.235148 A5-A8
 function getPL(rt::Runtime, ::CTMRG)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
     χ,D = size(Tu)[[1,2]]
 
-    Cu1 = ein"(((abc,cd),def),begh),(((jkl,lm),mna),nhik)->fgij"(Tu,Cul,Tl,M,Tr,Cru,Tu,M)
-    Cd1 = ein"(((fed,dc),cba),gebh),(((anm,ml),lkj),ihnk)->fgij"(Tl,Cld,Td,M,Td,Cdr,Tr,M)
-    # Cu1 = ein"((jk,kih),hge),ef->fgij"(Cru,Tu,Tu,Cul)
-    # Cd1 = ein"((fe,egh),hik),kj->fgij"(Cld,Td,Td,Cdr)
+    Cu1 = ein"(((abc,cd),def),begh),(((jkl,lm),mna),nhik)->fgji"(Tu,Cul,Tl,M,Tr,Cru,Tu,M)
+    Cd1 = ein"(((fed,dc),cba),gebh),(((anm,ml),lkj),ihnk)->jifg"(Tl,Cld,Td,M,Td,Cdr,Tr,M)
 
-    U, S, V = svd(reshape(ein"fgij,fgkl->klij"(Cu1,Cd1), χ*D,χ*D))
+    Uu, Su, _  = svd(reshape(Cu1, χ*D,χ*D))
+    _,  Sd, Vd = svd(reshape(Cd1, χ*D,χ*D))
 
-    U = reshape(U[:,1:χ], D, χ, χ)
-    V = reshape(V[:,1:χ], D, χ, χ)
-    S = S[1:χ]
+    # Uu = Uu[:,1:χ]
+    # Su = Su[1:χ]
+    # Sd = Sd[1:χ]
+    # Vd = Vd[:,1:χ]
 
-    sqrtS = sqrt.(S)
-    sqrtS⁺ = 1.0 ./sqrtS .* (sqrtS.>1E-7)
+    Flu = Uu * Diagonal(sqrt.(Su))
+    Fdl = Diagonal(sqrt.(Sd)) * Vd'
 
-    Pl⁺ = ein"(fgij,ijk),kl->lgf"(Cu1, V, Diagonal(sqrtS⁺))
-    Pl⁻ = ein"(fgij,ijk),kl->fgl"(Cd1, conj(U), Diagonal(sqrtS⁺))
+    Wl, Sl, Ql = svd(Fdl*Flu)
+    Wl = Wl[:,1:χ]
+    Ql = Ql[:,1:χ]
+    Sl = Sl[1:χ]
+
+    sqrtS = Diagonal(sqrt.(Sl))
+    sqrtS⁺ = pinv(sqrtS)
+
+    Pl⁺ = ein"abc->cba"(reshape(Flu * Ql * sqrtS⁺, χ,D,χ))
+    Pl⁻ = reshape(ein"ab->ba"(Fdl) * conj(Wl) * sqrtS⁺, χ,D,χ)
     
     return Pl⁺, Pl⁻
 end
