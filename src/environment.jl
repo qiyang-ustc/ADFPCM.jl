@@ -21,9 +21,9 @@ j ────┴──── k
 Cmap(x, Tu, Td) = ein"(bca,ad),dce->be"(Tu, x, Td)
 Emap(x, Tu, Td, M) = ein"((cba,adf),bdge),fgh->ceh"(Tu, x, M, Td)
 
-function Cenv(Tu, Td, Cl)
-    λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM)
-    info.converged == 0 && error("eigsolve did not converge")
+function Cenv(Tu, Td, Cl; kwargs...)
+    λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM; kwargs...)
+    # info.converged == 0 && error("eigsolve did not converge")
     return λ[1], cl[1]
 end
 
@@ -65,11 +65,64 @@ function getPL(rt::Runtime, ::FPCM)
     Pl⁺ = ein"(pl,lkj),ji->pki"(Cul⁺,Tu,Cul)/sqrt(λ)
     Pl⁻ = ein"(ij,jkl),lp->ikp"(Cdl,Td,Cdl⁺)/sqrt(λ)
     
+    # for i in 1:10
+    #     Cul, Cld, Cul⁺, Cdl⁺, Pl⁺, Pl⁻ = reorthgonal(Cul, Cld, Cul⁺, Cdl⁺, Pl⁺, Pl⁻)
+    # end
+
     return Cul, Cdl, Pl⁺, Pl⁻
 end
 
+
+function filltwo(Pl⁺, Pl⁻)
+    Plm⁺ = reshape(Pl⁺, :, size(Pl⁺,3))
+    Plm⁻ = reshape(permutedims(Pl⁻, (3,2,1)), :, size(Pl⁻,1))
+
+    q1,r1 = qr(Plm⁺)
+    q2,r2 = qr(Plm⁻)
+    q1, q2 = Array(q1),Array(q2)
+
+    # @warn "Finding 0 in diagonals, fill with 1.0"
+    filltail = (abs.(diag(r1)).*abs.(diag(r2))) .< 1E-12
+
+    r1,r2 = r1 + Diagonal(filltail*1.0), r2 + Diagonal(filltail*1.0)
+    q2[:,filltail] .= q1[:,filltail]
+    
+    Pl⁺ = reshape(q1*r1, size(Pl⁺,1), size(Pl⁺,2), size(Pl⁺,3))
+    Pl⁻ = reshape(q2*r2, size(Pl⁻,1), size(Pl⁻,2), size(Pl⁻,3))
+    
+    # PI = (q1*r1)'*(q2*r2)
+    # PIstability = norm(abs.(PI) - Diagonal(ones(size(PI,1))),1)
+    # if PIstability > 1E-5
+    #     @show q1'*q2
+    #     @show r1'*r2
+    #     print(PI)
+    #     error("PI is not identity, in filling:$(PIstability)")
+    # end
+    return Pl⁺, permutedims(Pl⁻,(3,2,1))
+end
+
+function reorthgonal(Cul, Cdl, Cul⁺, Cdl⁺, Pl⁺, Pl⁻)
+    Pl⁺, Pl⁻ = filltwo(Pl⁺, Pl⁻) # makesure Pl+ Pl- full rank
+    λ, Yl = Cenv(Pl⁺, Pl⁻, typeof(Cul)(Diagonal(ones(size(Cul)...))))
+    U, S, V = svd(Yl)
+    sqrtS = sqrt.(S)
+    # @show sqrtS
+    sqrtS⁺ = 1.0 ./sqrtS .* (sqrtS.>1E-7)
+    Yul = U * Diagonal(sqrtS)
+    Ydl = Diagonal(sqrtS) * V'
+    Yul⁺ = Diagonal(sqrtS⁺) * U'
+    Ydl⁺ = V * Diagonal(sqrtS⁺)
+    Pl⁺ = ein"(pl,lkj),ji->pki"(Yul⁺,Pl⁺,Yul)
+    Pl⁻ = ein"(ij,jkl),lp->ikp"(Ydl,Pl⁻,Ydl⁺)
+    Cul = Cul * Yul
+    Cdl = Ydl * Cdl
+    Cul⁺ = Yul⁺ * Cul⁺
+    Cdl⁺ = Cdl⁺ * Ydl⁺
+    return Cul, Cdl, Cul⁺, Cdl⁺, Pl⁺, Pl⁻
+end
+
 function leftmove(rt::Runtime, alg::FPCM)
-    @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
+    @unpack M, Cul, Cld,  Cdr, Cru, Tu, Tl, Td, Tr = rt
     Cul, Cld, Pl⁺, Pl⁻ = Zygote.@ignore getPL(rt, alg)
 
     _, Cul = Cenv(Tu, Pl⁻, Cul)
@@ -80,6 +133,7 @@ function leftmove(rt::Runtime, alg::FPCM)
     # _, _, Pd⁺, Pd⁻ = Zygote.@ignore getPL(cycle(rt), alg)
     # _, Cul = CTMenv(Tu, Tl, Pl⁻, Pu⁺, M, Cul)
     # _, Cld = CTMenv(Tl, Td, Pd⁻, Pl⁺, permutedims(M,(2,3,4,1)), Cld)
+    
 
     return Runtime(M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr)
 end
