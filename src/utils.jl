@@ -4,7 +4,8 @@ function logZ(rt::Runtime)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
 
     # alternative implementation easier but slow 
-    λM, _ = Eenv(Tu, Td, M, ein"ij,jkl,lp->ikp"(Cul,Tl,Cul))
+    @plansor E[-1 -2; -3] := Cul[-1; 1] * Tl[1 -2; 2] * Cld[2; -3]  
+    λM, _ = Eenv(Tu, Td, M, E)
     λN, _ = Cenv(Tu, Td, Cul*Cld)
 
     # E = ein"(ab,bcd),de->ace"(Cul,Tl,Cld)

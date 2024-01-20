@@ -2,24 +2,17 @@
 tensor order graph: from left to right, top to bottom. 
 tensor index order: anti-clockwise
 ```
-a ────┬──── c    a──────┬──────b   
-│     b     │    │      │      │                     
-├─ d ─┼─ e ─┤    │      c      │                  
-│     g     │    │      │      │  
-f ────┴──── h    d──────┴──────e   
-
-a ────┬──── c  
-│     b     │
-├─ d ─┼─ e ─┤
-│     f     │
-├─ g ─┼─ h ─┤           
-│     i     │
-j ────┴──── k     
+1 ────┬──── 3    1──────┬──────2   
+│     2     │    │      │      │                     
+├─ 4 ─┼─ 5 ─┤    │      3      │                  
+│     6     │    │      │      │  
+7 ────┴──── 8    4──────┴──────5   
+  
 ```
 """
 
-Cmap(x, Tu, Td) = ein"(bca,ad),dce->be"(Tu, x, Td)
-Emap(x, Tu, Td, M) = ein"((cba,adf),bdge),fgh->ceh"(Tu, x, M, Td)
+Cmap(x, Tu, Td) = @plansor y[-2; -5] := Tu[-2 3; 1] * x[1; 4] * Td[4 3; -5]
+Emap(x, Tu, Td, M) = @plansor y[-3 -5; -8] := Tu[-3 2; 1] * x[1 4; 7] * M[4 2;6 -5] * Td[7 6; -8] 
 
 function Cenv(Tu, Td, Cl; kwargs...)
     λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM; kwargs...)
@@ -52,24 +45,24 @@ end
 function getPL(rt::Runtime, ::FPCM)
     @unpack Tu, Td, Cul, Cld = rt
     λ, Cl = Cenv(Tu, Td, Cul*Cld)
-    U, S, V = svd(Array{ComplexF32}(Cl))
+    U, S, Vt = svd(Cl)
 
-    sqrtS = sqrt.(S)
-    sqrtS⁺ = 1.0 ./sqrtS .* (sqrtS.>1E-7)
-    Cul = U * Diagonal(sqrtS)
-    Cdl = Diagonal(sqrtS) * V'
+    sqrtS = sqrt(S)
+    Cul = U * sqrtS
+    Cdl = sqrtS * Vt
 
-    Cul⁺ = Diagonal(sqrtS⁺) * U'
-    Cdl⁺ = V * Diagonal(sqrtS⁺)
+    sqrtS⁺ = inv(sqrtS)
+    Cul⁺ = sqrtS⁺ * U'
+    Cdl⁺ = Vt' * sqrtS⁺
 
-    Pl⁺ = ein"(pl,lkj),ji->pki"(Cul⁺,Tu,Cul)/sqrt(λ)
-    Pl⁻ = ein"(ij,jkl),lp->ikp"(Cdl,Td,Cdl⁺)/sqrt(λ)
+    @plansor Pl⁺[-1 -3; -5] := Cul⁺[-1; 2] * Tu[2 -3; 4] * Cul[4; -5]
+    @plansor Pl⁻[-1 -3; -5] := Cdl[-1; 2] * Td[2 -3; 4] * Cdl⁺[4; -5]
     
     # for i in 1:10
     #     Cul, Cld, Cul⁺, Cdl⁺, Pl⁺, Pl⁻ = reorthgonal(Cul, Cld, Cul⁺, Cdl⁺, Pl⁺, Pl⁻)
     # end
 
-    return Cul, Cdl, Pl⁺, Pl⁻
+    return Cul, Cdl, Pl⁺/sqrt(λ), Pl⁻/sqrt(λ)
 end
 
 

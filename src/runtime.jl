@@ -1,4 +1,4 @@
-struct Runtime{MT <: AbstractArray{<:Number, 4}, CT <: AbstractArray{<:Number, 2}, ET <: AbstractArray{<:Number, 3}}
+struct Runtime{MT <: AbstractTensorMap{<:IndexSpace, 2,2}, CT <: AbstractTensorMap{<:IndexSpace, 1,1}, ET <: AbstractTensorMap{<:IndexSpace, 2,1}}
     M::MT
     Cul::CT
     Cld::CT
@@ -12,17 +12,17 @@ end
 
 function Runtime(M, ::Val{:random}, alg)
     χ = alg.χ
-    D = size(M,1)
-    C = rand!(similar(M,χ,χ))
-    T = rand!(similar(M,χ,D,χ))
+    D = space(M, 1)
+    C = TensorMap(randn, ComplexF64, χ,χ)
+    Tl = Tu = TensorMap(randn, ComplexF64, χ*D',χ)
+    Tr = Td = TensorMap(randn, ComplexF64, χ*D,χ)
     alg.verbose && Zygote.@ignore printstyled("start $alg random initial fpcm_χ$(χ) environment->  \n"; bold=true, color=:green) 
     
-
-    return Runtime(M, C, C, C, C, T, T, T, T)
+    return Runtime(M, C, C, C, C, Tu, Tl, Td, Tr)
 end
 
 function Runtime(M, chkp_file::String, alg)
-    rt = loadtype(chkp_file, Runtime)
+    rt = load(chkp_file, "env")
     alg.verbose && Zygote.@ignore printstyled("start $alg environment load from $(chkp_file), set up χ=$(alg.χ) is blocked -> \n"; bold=true, color=:green) 
     if typeof(M) <: CuArray
         rt = Runtime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Tu), CuArray(rt.Tl), CuArray(rt.Td), CuArray(rt.Tr))
@@ -32,7 +32,7 @@ function Runtime(M, chkp_file::String, alg)
     return rt
 end
 
-cycle(rt::Runtime) = Runtime(permutedims(rt.M,(2,3,4,1)), rt.Cld, rt.Cdr, rt.Cru, rt.Cul, rt.Tl, rt.Td, rt.Tr, rt.Tu)
+cycle(rt::Runtime) = Runtime(permute(rt.M, ((3,1),(4,2))), rt.Cld, rt.Cdr, rt.Cru, rt.Cul, rt.Tl, rt.Td, rt.Tr, rt.Tu)
 rotatemove(rt, alg) = cycle(leftmove(rt, alg))
 rightmove(rt, alg) = leftmove(cycle(cycle(rt)), alg)
 # cyclemove(rt, alg) = foldl(rotatemove, repeat([alg], 4), init=rt) # have bugs for AD https://github.com/JuliaDiff/ChainRules.jl/pull/569
@@ -41,7 +41,7 @@ hvmove(rt, alg) = cycle(rightmove(leftmove(rt, alg), alg))
 randmove(rt, alg) = rand([cycle, cycle ∘ cycle, cycle ∘ cycle ∘ cycle])(leftmove(rt, alg))
 
 function initialize_runtime(M, alg)
-    in_chkp_file = alg.infolder*"/χ$(alg.χ).h5"
+    in_chkp_file = alg.infolder*"/χ$(alg.χ).jld2"
     if isfile(in_chkp_file)                               
         rt = Runtime(M, in_chkp_file, alg)   
     else
@@ -69,8 +69,8 @@ function env(rt::Runtime, alg::Algorithm)
             if alg.ifsave && err < alg.savetol && (i % alg.save_interval == 0 || err < alg.tol)
                 rts = Runtime(Array(M), Array(rt.Cul), Array(rt.Cld), Array(rt.Cdr), Array(rt.Cru), Array(rt.Tu), Array(rt.Tl), Array(rt.Td), Array(rt.Tr))
                 ispath(alg.outfolder) || mkpath(alg.outfolder)
-                out_chkp_file = alg.outfolder*"/χ$(alg.χ).h5"
-                savetype(out_chkp_file, rts, Runtime)
+                out_chkp_file = alg.outfolder*"/χ$(alg.χ).jld2"
+                save(out_chkp_file, "env", rts)
     
                 logfile = open(alg.outfolder*"/χ$(alg.χ).log", "a")
                 write(logfile, logentry(i, err, freenergy))

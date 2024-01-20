@@ -1,7 +1,7 @@
 abstract type Algorithm end
 
 @with_kw mutable struct FPCM <: Algorithm
-    χ::Int = 16
+    χ::VectorSpace
     tol::Float64 = 1e-14
     maxiter::Int = 1000
     miniter::Int = 100
@@ -15,7 +15,7 @@ abstract type Algorithm end
 end
 
 @with_kw mutable struct CTMRG <: Algorithm
-    χ::Int = 16
+    χ::VectorSpace
     tol::Float64 = 1e-14
     maxiter::Int = 1000
     miniter::Int = 100
