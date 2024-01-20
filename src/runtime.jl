@@ -24,10 +24,10 @@ end
 function Runtime(M, chkp_file::String, alg)
     rt = load(chkp_file, "env")
     alg.verbose && Zygote.@ignore printstyled("start $alg environment load from $(chkp_file), set up χ=$(alg.χ) is blocked -> \n"; bold=true, color=:green) 
-    if typeof(M) <: CuArray
-        rt = Runtime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Tu), CuArray(rt.Tl), CuArray(rt.Td), CuArray(rt.Tr))
-    else
+    if typeof(M.data) <: Array
         rt = Runtime(M, rt.Cul, rt.Cld, rt.Cdr, rt.Cru, rt.Tu, rt.Tl, rt.Td, rt.Tr)
+    else
+        rt = Runtime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Tu), CuArray(rt.Tl), CuArray(rt.Td), CuArray(rt.Tr))
     end  
     return rt
 end

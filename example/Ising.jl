@@ -1,6 +1,7 @@
 using ADFPCM
 using ADFPCM: cycle, logZ
 using Zygote
+using TensorKit
 
 let
     include("exampletensors.jl")
