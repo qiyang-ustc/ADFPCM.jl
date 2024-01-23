@@ -14,10 +14,6 @@ using Random
     B = TensorMap(randn, ComplexF64, ℂ^2 ⊗ ℂ^2, ℂ^2)
 
     D = TensorMap(randn, ComplexF64, (ℂ^2)' ⊗ ℂ^2, ℂ^2 ⊗ ℂ^2)
-    @tensor C[-1 5;2 1] := A[-1 5;4]*B[4 2;1]
-    @plansor C′[-1 5 2;1] := A[-1 5;4]*B[4 2;1]
-    @plansor E[-1 -2;1 3] := C[-1 5 2;1]*D[5 -2;2 3]
-    # @test C ≈ C′
 end
 
 @testset "tensor product" begin
@@ -28,6 +24,20 @@ end
     m1′ = m1 ⊗ m1
     w′ = m1′ * v′
     @test w′ ≈ w ⊗ w
+
+    A = TensorMap(randn, ComplexF64, ℂ^2 ⊗ ℂ^2, ℂ^2)
+    B = TensorMap(randn, ComplexF64, ℂ^2 ⊗ ℂ^2, ℂ^2)
+
+    D = TensorMap(randn, ComplexF64, (ℂ^2)' ⊗ ℂ^2, ℂ^2 ⊗ ℂ^2)
+    @tensor C[-1 5;2 1] := A[-1 5;4]*B[4 2;1]
+    @plansor C′[-1 5 2;1] := A[-1 5;4]*B[4 2;1]
+    @plansor E[-1 -2;1 3] := C[-1 5 2;1]*D[5 -2;2 3]
+    # @test C ≈ C′
+    
+    @plansor C = A'[3;1 2] * B[1 2; 3]
+    @test dot(A,B) ≈ C
+
+    @test convert(Array, A) ≈ reshape(A.data,2,2,2)
 end
 
 @testset "svd" begin
@@ -55,6 +65,10 @@ end
     @tensor C[a,b] := A[a,c,d]*B[c,b,d]
     @plansor C′[a,b] := A[a,c,d]*B[c,b,d]
     @test C ≈ C′
+
+    tA = convert(Array, A)
+    ttA = TensorMap(tA, V1*V1,V2')
+    @test ttA ≈ A
 end
 
 @testset "U1 symmetry" begin

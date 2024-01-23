@@ -4,21 +4,21 @@ function logZ(rt::Runtime)
     @unpack M, Cul, Cld, Cdr, Cru, Tu, Tl, Td, Tr = rt
 
     # alternative implementation easier but slow 
-    @plansor E[-1 -2; -3] := Cul[-1; 1] * Tl[1 -2; 2] * Cld[2; -3]  
-    λM, _ = Eenv(Tu, Td, M, E)
-    λN, _ = Cenv(Tu, Td, Cul*Cld)
+    # @plansor E[-1 -2; -3] := Cul[-1; 1] * Tl[1 -2; 2] * Cld[2; -3]  
+    # λM, _ = Eenv(Tu, Td, M, E)
+    # λN, _ = Cenv(Tu, Td, Cul*Cld)
 
-    # E = ein"(ab,bcd),de->ace"(Cul,Tl,Cld)
-    # Ǝ = ein"(ab,bcd),de->ace"(Cdr,Tr,Cru)
-    # 田 = ein"abc,cba->"(Emap(E, Tu, Td, M), Ǝ)[]
-    # 日 = ein"abc,cba->"(E,Ǝ)[]
-    # λM = 田/日
+    @plansor E[-1 -3; -5] := Cul[-1; 2] * Tl[2 -3; 4] * Cld[4; -5]
+    @plansor Ǝ[-1 -3; -5] := Cdr[-1; 2] * Tr[2 -3; 4] * Cru[4; -5]
+    @plansor 田 = Emap(E, Tu, Td, M)[1 2; 3] * Ǝ[3 2; 1]
+    @plansor 日 = E[1 2; 3] * Ǝ[3 2; 1]
+    λM = 田/日
 
-    # C = ein"ab,bc->ac"(Cul,Cld)
-    # Ɔ = ein"ab,bc->ac"(Cdr,Cru)
-    # 日 = ein"ab,ba->"(Cmap(C, Tu, Td), Ɔ)[]
-    # 口 = ein"ab,ba->"(C,Ɔ)[]
-    # λN = 日/口
+    @plansor C[-1; -3] := Cul[-1; 2] * Cld[2; -3]
+    @plansor Ɔ[-1; -3] := Cdr[-1; 2] * Cru[2; -3]
+    @plansor 日 = Cmap(C, Tu, Td)[1; 2] * Ɔ[2; 1]
+    @plansor 口 = C[1; 2] * Ɔ[2; 1]
+    λN = 日/口
 
     return log(abs(λM/λN))
 end

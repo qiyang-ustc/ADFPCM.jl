@@ -1,5 +1,5 @@
-@non_differentiable savetype(file, object, type)
-@non_differentiable loadtype(file, type)
+@non_differentiable save(file, name, object)
+@non_differentiable load(file, name)
 
 num_grad(f, K::Complex; δ::Real=1e-5) = (f(K + δ / 2) - f(K - δ / 2)) / δ + (f(K + δ / 2 * 1.0im) - f(K - δ / 2 * 1.0im)) / δ * 1.0im
 num_grad(f, K::Real; δ::Real=1e-5) = (f(K + δ / 2) - f(K - δ / 2)) / δ
@@ -12,6 +12,15 @@ function num_grad(f, a::AbstractArray; δ::Real=1e-5)
         num_grad(foo, b[i], δ=δ)
     end
     return atype(df)
+end
+
+function num_grad(f, a::AbstractTensorMap; δ::Real=1e-5)
+    b = Array(copy(convert(Array, a)))
+    df = map(CartesianIndices(b)) do i
+        foo = x -> (ac = copy(b); ac[i] = x; f(TensorMap(ac, space(a))))
+        num_grad(foo, b[i], δ=δ)
+    end
+    return TensorMap(df, space(a))
 end
 
 # patch since it's currently broken otherwise
@@ -58,27 +67,28 @@ dTu  = -  Tl ──  M ──  ξl
            │     │     │   
            └──   Td  ──┘   
 
-           ┌──   Tu  ──┐          a ────┬──── c 
-           │     │     │          │     b     │ 
-dTd  = -  Tl  ── M ──  ξl         ├─ d ─┼─ e ─┤ 
-           │     │     │          │     g     │  
-           └──       ──┘          f ────┴──── h 
+           ┌──   Tu  ──┐         1 ────┬──── 3 
+           │     │     │         │     2     │ 
+dTd  = -  Tl  ── M ──  ξl        ├─ 4 ─┼─ 5 ─┤ 
+           │     │     │         │     6     │  
+           └──       ──┘         7 ────┴──── 8 
 ```
 """
+Ǝmap(x, Tu, Td, M) = @plansor y[-7; -1 -4] := Td[-7 6; 8] * x[8; 3 5] * M[-4 2; 6 5] * Tu[3 2; -1] 
 
 function ChainRulesCore.rrule(::typeof(Eenv), Tu, Td, M, Tl)
     λl, Tl = Eenv(Tu, Td, M, Tl)
     # @show λl
     function back((dλ, dTl))
-        dTl -= ein"abc,abc ->"(conj(Tl), dTl)[] * Tl
-        ξl, info = linsolve(R -> ein"((cba,ceh),bdge),fgh -> adf"(Tu, R, M, Td), conj(dTl), -λl, 1; maxiter = 1)
+        dTl -= dot(Tl, dTl) * Tl
+        ξl, info = linsolve(R -> Ǝmap(R, Tu, Td, M), dTl', -λl, 1; maxiter = 1)
         @assert info.converged==1
-        # errL = ein"abc,abc ->"(conj(Tl), ξl)[]
-        # abs(errL) > 1e-1 && throw("Tl and ξl aren't orthometric. err = $(errL)")
-        dTu = -ein"((adf,fgh),bdge),ceh -> cba"(Tl, Td, M, ξl) 
-        dTd = -ein"((adf,cba),bdge),ceh -> fgh"(Tl, Tu, M, ξl)
-        dM = -ein"(adf,cba),(fgh,ceh) -> bdge"(Tl, Tu, Td, ξl)
-        return NoTangent(), conj(dTu), conj(dTd), conj(dM), NoTangent()...
+        errL = dot(Tl', ξl)
+        abs(errL) > 1e-1 && throw("Tl and ξl aren't orthometric. err = $(errL)")
+        @plansor dTu[-1; -3 -2] := -Tl[-1 4; 7] * Td[7 6; 8] * M[4 -2; 6 5] * ξl[8; -3 5]
+        @plansor dTd[-8; -7 -6] := -ξl[-8; 3 5] * Tu[3 2; 1] * M[4 2; -6 5] * Tl[1 4; -7]
+        @plansor dM[-6 -5; -4 -2] := -Td[7 -6; 8] * ξl[8; 3 -5] * Tl[1 -4; 7] * Tu[3 -2; 1]
+        return NoTangent(), dTu', dTd', dM', NoTangent()...
     end
     return (λl, Tl), back
 end
@@ -89,29 +99,32 @@ end
 ```
            ┌──       ──┐   
            │     │     │   
-dTu  = -   C ────┼──── ξl  
+dTu  = -   C     │     ξl  
            │     │     │   
            └──   Td  ──┘   
 
-           ┌──   Tu  ──┐           a──────┬──────b 
-           │     │     │           │      │      │ 
-dTd  = -   C  ───┼───  ξl          │      c      │ 
-           │     │     │           │      │      │ 
-           └──       ──┘           d──────┴──────e 
+           ┌──   Tu  ──┐          1──────┬──────2  
+           │     │     │          │      │      │  
+dTd  = -   C     │     ξl         │      3      │  
+           │     │     │          │      │      │  
+           └──       ──┘          4──────┴──────5  
 ```
 """
+
+Ɔmap(x, Tu, Td) = @plansor y[-4; -1] := Td[-4 3; 5] * x[5; 2] * Tu[2 3; -1]
 
 function ChainRulesCore.rrule(::typeof(Cenv), Tu, Td, C; kwargs...)
     λl, C = Cenv(Tu, Td, C)
     function back((dλ, dC))
-        dC -= Array(ein"ab,ab ->"(conj(C), dC))[] * C
-        ξl, info = linsolve(R -> ein"(be,bca),dce -> ad"(R,Tu,Td), conj(dC), -λl, 1; maxiter = 1)
+        dC -= dot(C, dC) * C
+        ξl, info = linsolve(x -> Ɔmap(x, Tu, Td), dC', -λl, 1; maxiter = 1)
+        # @show space(ξl) space(Ɔmap(ξl, Tu, Td)) space(dC')
         @assert info.converged==1
-        # errL = ein"ab,ab ->"(conj(C), ξl)[]
-        # abs(errL) > 1e-1 && throw("C and ξl aren't orthometric. err = $(errL)")
-        dTu = -ein"(ad,dce),be -> bca"(C, Td, ξl) 
-        dTd = -ein"(ad,bca),be -> dce"(C, Tu, ξl)
-        return NoTangent(), conj(dTu), conj(dTd), NoTangent()...
+        errL = dot(C', ξl)
+        abs(errL) > 1e-1 && throw("C and ξl aren't orthometric. err = $(errL)")
+        @plansor dTu[-1; -2 -3] := -C[-1; 4] * Td[4 -3; 5] * ξl[5; -2]
+        @plansor dTd[-5; -4 -3] := -ξl[-5; 2] * Tu[2 -3; 1] * C[1; -4]
+        return NoTangent(), dTu', dTd', NoTangent()...
     end
     return (λl, C), back
 end

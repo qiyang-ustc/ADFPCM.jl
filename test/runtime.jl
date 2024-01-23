@@ -89,3 +89,21 @@ end
     rt = env(rt, params)
     @test logZ(rt) ≈ 0.29152163577 atol = 1e-4
 end
+
+@testset "FPCM with $atype" for atype in [Array]
+    Random.seed!(42)
+    D = ℤ₂Space(0=>1,1=>1)
+    χ = ℤ₂Space(0=>8,1=>8)
+    M = TensorMap(zeros, ComplexF64, D*D,D*D)
+    for (c, b) in blocks(M)
+        if c.n == 0 
+            b .= [1 0.5; 0.5 1]
+        else
+            b .= [0.5 1; 1 0.5]
+        end
+    end
+    params = FPCM(χ=χ, tol=1e-10, ifsave=false, verbose=true)
+    rt = initialize_runtime(M, params)
+    rt = env(rt, params)
+    @test logZ(rt) ≈ 0.405465108108163
+end
