@@ -5,6 +5,7 @@ using Random
 
 @testset "initial Tensor" begin
     A = Tensor(randn, ℝ^3 ⊗ ℝ^2 ⊗ ℝ^4) # if it use randn(3,2,4)?
+    
     A′ = Tensor(randn, ℝ^3) ⊗ Tensor(randn, ℝ^2) ⊗ Tensor(randn, ℝ^4) # should they be equal?
     @test space(A) == space(A′) 
 
@@ -82,4 +83,18 @@ end
 @testset "mix" begin 
     V = Rep[U₁×ℤ₂]((0, 0) => 2, (1, 1) => 1, (-1, 0) => 1)
     A = TensorMap(randn, V*V, V)
+end
+
+@testset "fuse" begin
+    V1 = ℤ₂Space(0=>3,1=>2)
+    V2 = ℤ₂Space(0=>1,1=>1)
+    A = TensorMap(randn, ComplexF64, fuse(V1,V2), V2)
+    B = TensorMap(A.data, V1*V2, V2)
+    @test norm(A) ≈ norm(B)
+
+    V1 = U₁Space(0=>2,1=>1,-1=>1)
+    V2 = U₁Space(0=>1,1=>1,-1=>2)
+    A = TensorMap(randn, ComplexF64, fuse(V1,V2), V2)
+    B = TensorMap(A.data, V1*V2, V2)
+    @test norm(A) ≈ norm(B)
 end

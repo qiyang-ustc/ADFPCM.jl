@@ -5,9 +5,10 @@ module ADFPCM
     using Zygote
     using JLD2
     using OMEinsum
-    export Runtime, FPCM, CTMRG, initialize_runtime, env
+    using CUDA
+    export Runtime, FPCM, CTMRG, initialize_runtime, env, obs_env
 
-    @reexport using CUDA, LinearAlgebra, KrylovKit
+    @reexport using LinearAlgebra, KrylovKit
     @reexport using Parameters, Random, FileIO, Printf
 
     include("interface.jl")
