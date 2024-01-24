@@ -11,13 +11,19 @@ module ADFPCM
     @reexport using LinearAlgebra, KrylovKit
     @reexport using Parameters, Random, FileIO, Printf
 
-    include("interface.jl")
+    
+
     include("tensorkitpatch.jl")
+
+    abstract type Algorithm end
     include("runtime.jl")
+    include("interface.jl")
     include("environment.jl")
+    
     include("utils.jl")
     include("h5api.jl")
     include("cudapatch.jl")
     include("autodiff.jl")
+    
     
 end

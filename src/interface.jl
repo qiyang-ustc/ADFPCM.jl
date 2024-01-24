@@ -1,5 +1,3 @@
-abstract type Algorithm end
-
 @with_kw mutable struct FPCM <: Algorithm
     χ::VectorSpace
     tol::Float64 = 1e-14
@@ -38,8 +36,10 @@ function obs_env(M, Params::Algorithm)
     Env(env(rt, Params))
 end
 struct Env{ET <: AbstractTensorMap{<:IndexSpace, 2,1}}
-    Eu::ET
-    Ed::ET
+    Eul::ET
+    Eur::ET
+    Edl::ET
+    Edr::ET
     Elu::ET
     Eld::ET
     Elo::ET
@@ -55,6 +55,6 @@ struct Env{ET <: AbstractTensorMap{<:IndexSpace, 2,1}}
         @plansor Eru[-1 -2; -4] := Tr[-1 -2; 3] * Cru[3; -4]
         @plansor Ero[-1 -3; -5] := Cdr[-1; 2] * Tr[2 -3; 4] * Cru[4; -5]
         ET = typeof(Tu)
-        new{ET}(Tu, Td, Elu, Eld, Elo, Eru, Erd, Ero)
+        new{ET}(Tu, Tu, Td, Td, Elu, Eld, Elo, Eru, Erd, Ero)
     end
 end
