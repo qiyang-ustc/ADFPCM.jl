@@ -41,7 +41,7 @@ hvmove(rt, alg) = cycle(rightmove(leftmove(rt, alg), alg))
 randmove(rt, alg) = rand([cycle, cycle ∘ cycle, cycle ∘ cycle ∘ cycle])(leftmove(rt, alg))
 
 function initialize_runtime(M, alg)
-    in_chkp_file = alg.infolder*"/χ$(alg.χ).jld2"
+    in_chkp_file = joinpath(alg.infolder, "bMPS_χ$(alg.χ).jld2")
     if isfile(in_chkp_file)                               
         rt = Runtime(M, in_chkp_file, alg)   
     else
@@ -69,10 +69,10 @@ function env(rt::Runtime, alg::Algorithm)
             if alg.ifsave && err < alg.savetol && (i % alg.save_interval == 0 || err < alg.tol)
                 rts = Runtime(Array(M), Array(rt.Cul), Array(rt.Cld), Array(rt.Cdr), Array(rt.Cru), Array(rt.Tu), Array(rt.Tl), Array(rt.Td), Array(rt.Tr))
                 ispath(alg.outfolder) || mkpath(alg.outfolder)
-                out_chkp_file = alg.outfolder*"/χ$(alg.χ).jld2"
+                out_chkp_file = joinpath(alg.outfolder, "bMPS_χ$(alg.χ).jld2")
                 save(out_chkp_file, "env", rts)
     
-                logfile = open(alg.outfolder*"/χ$(alg.χ).log", "a")
+                logfile = open(joinpath(alg.outfolder, "bMPS_χ$(alg.χ).log"), "a")
                 write(logfile, logentry(i, err, freenergy))
                 close(logfile)
             end
