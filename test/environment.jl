@@ -20,6 +20,22 @@ using OMEinsum
 
     @test λC * C ≈ Cmap(C, Tu, Td)
     @test λE * E ≈ Emap(E, Tu, Td, M)
+
+    Tu = TensorMap(randn, ComplexF64, χ*D', D'*χ)
+    Td = TensorMap(randn, ComplexF64, χ*D, D*χ)
+    C = TensorMap(randn, ComplexF64, χ,χ)
+    E = TensorMap(randn, ComplexF64, χ*D',D'*χ)
+    M = TensorMap(randn, ComplexF64, D*D'*D*D',D*D'*D*D')
+    λC, C = Cenv(Tu, Td, C)
+    λE, E = Eenv(Tu, Td, M, E)
+
+    @test λC * C ≈ Cmap(C, Tu, Td)
+    @test λE * E ≈ Emap(E, Tu, Td, M)
+
+    @plansor y[-4 2 7; 3 5 11] := Tu[-4 2; 1 3] * E[1 7; 5 11]
+    # @plansor y[-4; 11 9 10 -8 -6] := y[-4 2 7; 3 5 11] * M[7 5 2 3; 9 10 -8 -6]
+    # @plansor y[-4 2 7 7 5 2 3; 3 5 11 9 10 -8 -6] := y[-4 2 7; 3 5 11] * M[7 5 2 3; 9 10 -8 -6]
+    # @planar y[-4 -8; -6 -12] := Tu[-4 2; 3 1] * x[1 7; 5 11] * M[7 5 2 3; 9 10 -8 -6] * Td[11 9; 10 -12] 
 end
 
 @testset "fpcm biorthogonal form with $atype" for atype in [Array]

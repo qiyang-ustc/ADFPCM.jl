@@ -1,5 +1,6 @@
 using TensorKit
 using TensorKit: ×
+using KrylovKit
 using Test
 using Random
 
@@ -88,13 +89,22 @@ end
 @testset "fuse" begin
     V1 = ℤ₂Space(0=>3,1=>2)
     V2 = ℤ₂Space(0=>1,1=>1)
-    A = TensorMap(randn, ComplexF64, fuse(V1,V2), V2)
-    B = TensorMap(A.data, V1*V2, V2)
-    @test norm(A) ≈ norm(B)
+    A = TensorMap(randn, ComplexF64, V1*V2*V1*V2, V1*V2)
+    B = TensorMap(A.data, fuse(V1*V2)*fuse(V1*V2), V1*V2)
+    I = isomorphism(fuse(V1*V2)*fuse(V1*V2), V1*V2*V1*V2)
+    @tensor C[-1 -2; -3 -4] := I[-1 -2; 1 2 3 4] * A[1 2 3 4; -3 -4]
+    @test norm(A) ≈ norm(B) ≈ norm(C)
+    @test B ≈ C
 
-    V1 = U₁Space(0=>2,1=>1,-1=>1)
-    V2 = U₁Space(0=>1,1=>1,-1=>2)
-    A = TensorMap(randn, ComplexF64, fuse(V1,V2), V2)
-    B = TensorMap(A.data, V1*V2, V2)
-    @test norm(A) ≈ norm(B)
+    D = ℤ₂Space(0=>3,1=>2)
+    d = ℤ₂Space(0=>1,1=>1)
+    ipeps = TensorMap(randn, ComplexF64, D*D*d, D*D)
+    @tensor M[-2 -1 -4 -3; -6 -5 -8 -7] := ipeps'[-6 -8; -2 -4 9] * ipeps[-1 -3 9;-5 -7]
+    It = isomorphism(fuse(D', D), D'*D)
+
+    @tensor Mt[-1 -2; -3 -4] := It[-1; 2 1] * It[-2; 4 3] * It'[6 5; -3] * It'[8 7; -4] * M[2 1 4 3; 6 5 8 7]
+    Mt2 = TensorMap(M.data, fuse(D'*D)*fuse(D'*D), fuse(D'*D)'*fuse(D'*D)')
+    @test norm(M) ≈ norm(Mt) ≈ norm(Mt2)
+    
+    @test Mt.data != Mt2.data
 end

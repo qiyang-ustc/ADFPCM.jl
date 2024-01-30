@@ -1,4 +1,4 @@
-struct Runtime{MT <: AbstractTensorMap{<:IndexSpace, 2,2}, CT <: AbstractTensorMap{<:IndexSpace, 1,1}, ET <: AbstractTensorMap{<:IndexSpace, 2,1}}
+struct Runtime{MT <: AbstractTensorMap, CT <: AbstractTensorMap, ET <: AbstractTensorMap}
     M::MT
     Cul::CT
     Cld::CT
@@ -24,11 +24,12 @@ end
 function Runtime(M, chkp_file::String, alg)
     rt = load(chkp_file, "env")
     alg.verbose && Zygote.@ignore printstyled("start $alg environment load from $(chkp_file), set up χ=$(alg.χ) is blocked -> \n"; bold=true, color=:green) 
-    if typeof(M.data) <: Array
+    # currently do not support GPU
+    # if typeof(M.data.values) <: Array 
+    #     rt = Runtime(M, rt.Cul, rt.Cld, rt.Cdr, rt.Cru, rt.Tu, rt.Tl, rt.Td, rt.Tr)
+    # else
         rt = Runtime(M, rt.Cul, rt.Cld, rt.Cdr, rt.Cru, rt.Tu, rt.Tl, rt.Td, rt.Tr)
-    else
-        rt = Runtime(M, CuArray(rt.Cul), CuArray(rt.Cld), CuArray(rt.Cdr), CuArray(rt.Cru), CuArray(rt.Tu), CuArray(rt.Tl), CuArray(rt.Td), CuArray(rt.Tr))
-    end  
+    # end  
     return rt
 end
 
@@ -41,7 +42,7 @@ hvmove(rt, alg) = cycle(rightmove(leftmove(rt, alg), alg))
 randmove(rt, alg) = rand([cycle, cycle ∘ cycle, cycle ∘ cycle ∘ cycle])(leftmove(rt, alg))
 
 function initialize_runtime(M, alg)
-    in_chkp_file = rejoinpath(alg.infolder, "bMPS_χ$(alg.χ).jld2")
+    in_chkp_file = Zygote.@ignore rejoinpath(alg.infolder, "bMPS_χ$(alg.χ).jld2")
     if isfile(in_chkp_file)                               
         rt = Runtime(M, in_chkp_file, alg)   
     else
@@ -67,7 +68,7 @@ function env(rt::Runtime, alg::Algorithm)
             alg.verbose && i % alg.output_interval == 0 && print(logentry(i, err, freenergy))
 
             if alg.ifsave && err < alg.savetol && (i % alg.save_interval == 0 || err < alg.tol)
-                rts = Runtime(Array(M), Array(rt.Cul), Array(rt.Cld), Array(rt.Cdr), Array(rt.Cru), Array(rt.Tu), Array(rt.Tl), Array(rt.Td), Array(rt.Tr))
+                rts = Runtime(M, rt.Cul, rt.Cld, rt.Cdr, rt.Cru, rt.Tu, rt.Tl, rt.Td, rt.Tr)
                 ispath(alg.outfolder) || mkpath(alg.outfolder)
                 out_chkp_file = rejoinpath(alg.outfolder, "bMPS_χ$(alg.χ).jld2")
                 save(out_chkp_file, "env", rts)

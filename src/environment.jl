@@ -1,22 +1,57 @@
 """
-tensor order graph: from left to right, top to bottom. 
 tensor index order: anti-clockwise
 ```
-1 ────┬──── 3    1──────┬──────2   
-│     2     │    │      │      │                     
-├─ 4 ─┼─ 5 ─┤    │      3      │                  
-│     6     │    │      │      │  
-7 ────┴──── 8    4──────┴──────5   
-  
+    1───┬───2                         
+    │   3                     
+    4───┴───5  
 ```
 """
+function Cmap(x::AbstractTensorMap{<:IndexSpace, 1,1}, Tu::AbstractTensorMap{<:IndexSpace, 2,1}, Td::AbstractTensorMap{<:IndexSpace, 2,1})
+    return @plansor y[-2; -5] := Tu[-2 3; 1] * x[1; 4] * Td[4 3; -5]
+end
 
-Cmap(x, Tu, Td) = @plansor y[-2; -5] := Tu[-2 3; 1] * x[1; 4] * Td[4 3; -5]
-Emap(x, Tu, Td, M) = @plansor y[-3 -5; -8] := Tu[-3 2; 1] * x[1 4; 7] * M[4 2;6 -5] * Td[7 6; -8] 
+"""
+```
+    1─┬─┬─2                            
+    │ 3 4                          
+    5─┴─┴─6  
+```
+"""
+function Cmap(x::AbstractTensorMap{<:IndexSpace, 1,1}, Tu::AbstractTensorMap{<:IndexSpace, 2,2}, Td::AbstractTensorMap{<:IndexSpace, 2,2}) 
+    return @plansor y[-2; -6] := Tu[-2 3; 4 1] * x[1; 5] * Td[5 3; 4 -6]
+end
+
+"""
+```
+    1 ────┬──── 3
+    │     2     
+    ├─ 4 ─┼─ 5  
+    │     6     
+    7 ────┴──── 8
+```
+"""
+function Emap(x::AbstractTensorMap{<:IndexSpace, 2,1}, Tu::AbstractTensorMap{<:IndexSpace, 2,1}, Td::AbstractTensorMap{<:IndexSpace, 2,1}, M::AbstractTensorMap{<:IndexSpace, 2,2}) 
+    return @plansor y[-3 -5; -8] := Tu[-3 2; 1] * x[1 4; 7] * M[4 2;6 -5] * Td[7 6; -8] 
+end
+
+"""
+```
+    1───┬─┬───4
+    │   2 3     
+    ├─5─┘ └─6 
+    ├─7─┐ ┌─8 
+    │   9 10  
+    11──┴─┴───12
+```
+"""
+function Emap(x::AbstractTensorMap{<:IndexSpace, 2,2}, Tu::AbstractTensorMap{<:IndexSpace, 2,2}, Td::AbstractTensorMap{<:IndexSpace, 2,2}, M::AbstractTensorMap{<:IndexSpace, 4,4})
+    # how to use @plansor?
+    return @tensor y[-4 -8; -6 -12] := Tu[-4 2; 3 1] * x[1 7; 5 11] * M[7 5 2 3; 9 10 -8 -6] * Td[11 9; 10 -12] 
+end
 
 function Cenv(Tu, Td, Cl; kwargs...)
     λ, cl, info = eigsolve(x -> Cmap(x, Tu, Td), Cl, 1, :LM; kwargs...)
-    # info.converged == 0 && error("eigsolve did not converge")
+    info.converged == 0 && error("eigsolve did not converge")
     return λ[1], cl[1]
 end
 
