@@ -20,6 +20,8 @@ function logZ(rt::Runtime)
     @plansor 口 = C[1; 2] * Ɔ[2; 1]
     λN = 日/口
 
+    abs(imag(λM/λN)) > 1e-7 && println("logZ is not real. λM/λN = $(λM/λN)")
+
     return log(abs(λM/λN))
 end
 
