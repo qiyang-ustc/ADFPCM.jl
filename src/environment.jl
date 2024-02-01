@@ -48,15 +48,15 @@ function getPL(rt::Runtime, ::FPCM)
     end
 
     Cul = Array{ComplexF64}(U * Diagonal(sqrtS))
-    Cdl = Array{ComplexF64}(Diagonal(sqrtS) * V')
+    Cld = Array{ComplexF64}(Diagonal(sqrtS) * V')
 
     Cul⁺ = Array{ComplexF64}(Diagonal(sqrtS⁺) * U')
-    Cdl⁺ = Array{ComplexF64}(V * Diagonal(sqrtS⁺))
+    Cld⁺ = Array{ComplexF64}(V * Diagonal(sqrtS⁺))
 
     Pl⁺ = ein"(pl,lkj),ji->pki"(Cul⁺,Tu,Cul)/sqrt(λ)
-    Pl⁻ = ein"(ij,jkl),lp->ikp"(Cdl,Td,Cdl⁺)/sqrt(λ)
+    Pl⁻ = ein"(ij,jkl),lp->ikp"(Cld,Td,Cld⁺)/sqrt(λ)
     
-    return Cul, Cdl, Pl⁺, Pl⁻
+    return Cul, Cld, Pl⁺, Pl⁻
 end
 
 function leftmove(rt::Runtime, alg::FPCM)

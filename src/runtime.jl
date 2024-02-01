@@ -26,7 +26,7 @@ function Runtime(M, ::Val{:random}, alg)
         dir = [1, -1], indqn = [qnχ, qnχ], indims = [dimsχ, dimsχ])
 
         # T = randinitial(M, χ, D, χ; 
-        # dir = [1, 1, -1], indqn = [qnχ, qnD, qnχ], indims = [dimsχ, dimsD, dimsχ])
+        # dir = [1, 1, -1], indqn = [qnχ, qnD, qnχ], indims = [dimsχ, dimsD*2, dimsχ])
         T = Zygote.@ignore symmetryreshape(randinitial(M, χ, Int(sqrt(D)), Int(sqrt(D)), χ; 
         dir = [1, -1, 1, -1], indqn = indqn, indims = indims
         ), 
