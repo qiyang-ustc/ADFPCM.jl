@@ -86,7 +86,7 @@ function getPL(rt::Runtime, ::FPCM)
     Cul = U * sqrtS
     Cdl = sqrtS * Vt
 
-    sqrtS⁺ = inv(sqrtS)
+    sqrtS⁺ = pinv(sqrtS)
     Cul⁺ = sqrtS⁺ * U'
     Cdl⁺ = Vt' * sqrtS⁺
 
