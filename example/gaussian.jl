@@ -5,21 +5,21 @@ using OMEinsum,LinearAlgebra
 using ADFPCM:Emap
 
 let 
-    include("exampletensors.jl")
-    include("exampleobs.jl")
+    
+    Random.seed!(1234)
+    M = ones(2,2,2,2)
+    M = M + 0.1* rand(2,2,2,2)
+    
     d = 2
     χ = 16
-    β = 100
     # atype = CuArray
     atype = Array
-    
-    # rm("./log/eigenconvergence.log")
-    # rm("./log/fidelity.log")
-    # rm("./log/error.log")
+    M = atype(M)
 
-    folder = "./data/AFIsing/"
-    model = Ising_Triangle_bad2(1, 1, β)
-    M = atype(reshape(model_tensor(model, Val(:Sbulk)), 2,2,2,2))
+    folder = "./data/fpeps/"
+    rm("./log/eigenconvergence.log")
+    rm("./log/fidelity.log")
+    rm("./log/error.log")
     
     _, _, mcM = mcform(M)
     params = ADFPCM.Params(χ=χ, ifsave=true, infolder=folder, maxiter=1000)
