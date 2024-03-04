@@ -24,22 +24,23 @@ end
 @testset "fpcm biorthogonal form with $atype" for atype in [Array]
     χ,D = 3,2
 
-    Tu = atype(rand(χ,D,χ))
-    Td = atype(rand(χ,D,χ))
-    C = atype(rand(χ,χ))
-    λC, C = Cenv(Tu, Td, C)
-    Cul, Cdl, Pl⁺, Pl⁻ = getPL(Tu, Td, C)
+    M = atype(rand(D,D,D,D))
+    params = FPCM(χ=χ,verbose=false)
+    rt = initialize_runtime(M, params)
 
-    @test Cul*Cdl ≈ C
+    λ, Cl = Cenv(rt.Tu, rt.Td, rt.Cul*rt.Cld)
+    Cul, Cdl, Pl⁺, Pl⁻ = getPL(rt, params)
+
+    @test Cul*Cdl ≈ Cl
 
     # equals identity
     @test Array(ein"pki,ikl->pl"(Pl⁺,Pl⁻)) ≈ I(χ)
 
-    # Bring to biorthogonal form
-    temp = Array(ein"ji,lkj->lki"(Cul,Tu) ./ ein"kji,lk->lji"(Pl⁺, Cul))
+    # # Bring to biorthogonal form
+    temp = Array(ein"ji,lkj->lki"(Cul,rt.Tu) ./ ein"kji,lk->lji"(Pl⁺, Cul))
     @test all(x -> x ≈ temp[1], temp)
 
-    temp = Array(ein"ij,jkl->ikl"(Cdl,Td) ./ ein"ijk,kl->ijl"(Pl⁻, Cdl))
+    temp = Array(ein"ij,jkl->ikl"(Cdl,rt.Td) ./ ein"ijk,kl->ijl"(Pl⁻, Cdl))
     @test all(x -> x ≈ temp[1], temp)
 end
 
