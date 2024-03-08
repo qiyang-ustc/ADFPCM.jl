@@ -39,6 +39,12 @@ struct Ising_Triangle_good <: HamiltonianModel
     β::Float64
 end
 
+struct Ising_Triangle_good2 <: HamiltonianModel 
+    Ni::Int
+    Nj::Int
+    β::Float64
+end
+
 struct J1J2_1 <: HamiltonianModel 
     Ni::Int
     Nj::Int
@@ -243,6 +249,30 @@ function model_tensor(model::Ising_Triangle_good, ::Val{:Sbulk})
 
     m = reshape(ein"im,in,jo,jp,kq,kr,ls,lt,ik,kl,lj,ji,il->mqrsptno"(I(2),I(2),I(2),I(2),I(2),I(2),I(2),I(2),w2,w2,w2,w2,w1),4,4,4,4)
     M = Zygote.Buffer(m, 4,4,4,4,Ni,Nj)
+    @inbounds @views for j = 1:Nj,i = 1:Ni
+        M[:,:,:,:,i,j] = m
+    end
+    return copy(M)
+end
+
+"""
+    residual entropy
+"""
+function model_tensor(model::Ising_Triangle_good2, ::Val{:Sbulk})
+    Ni, Nj, β = model.Ni, model.Nj, model.β
+
+    m = Zygote.@ignore zeros(ComplexF64, 2,2,2)
+    for i in -1:2:1
+        for j in -1:2:1
+            for k in -1:2:1
+                a,b,c = (i+3)÷2,(j+3)÷2,(k+3)÷2
+                m[a,b,c] = (1 + i*j*k) / 2 * exp(-β/2*(i+j+k+1))
+            end
+        end
+    end
+
+    m = ein"abc,cde->abde"(m,m)
+    M = Zygote.Buffer(m, 2,2,2,2,Ni,Nj)
     @inbounds @views for j = 1:Nj,i = 1:Ni
         M[:,:,:,:,i,j] = m
     end
