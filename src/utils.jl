@@ -20,14 +20,15 @@ end
 
 function nonnormality(rt)
     # Very costful calculation
-    @unpack M, Cul, Cld, Tu, Td, Tl = rt
+    return 0.0
+    # @unpack M, Cul, Cld, Tu, Td, Tl = rt
     
-    Cul, Cld, Pl⁺, Pl⁻ = getPL(Tu, Td, Cul*Cld)
-    λw, _, _ = eigsolve(x -> Emap(x, Pl⁺, Pl⁻, M), Tl, 1, :LM)
-    λs, _, _ = eigsolve(x -> Emap(Emap(x, Pl⁺, Pl⁻, M),
-    permutedims(Pl⁺,(3,2,1)),
-    permutedims(Pl⁻,(3,2,1)), permutedims(M,(1,4,3,2))), Tl, 1, :LM)
-    return sqrt(abs(λs[1]))/abs(λw[1])
+    # Cul, Cld, Pl⁺, Pl⁻ = getPL(Tu, Td, Cul*Cld)
+    # λw, _, _ = eigsolve(x -> Emap(x, Pl⁺, Pl⁻, M), Tl, 1, :LM)
+    # λs, _, _ = eigsolve(x -> Emap(Emap(x, Pl⁺, Pl⁻, M),
+    # permutedims(Pl⁺,(3,2,1)),
+    # permutedims(Pl⁻,(3,2,1)), permutedims(M,(1,4,3,2))), Tl, 1, :LM)
+    # return sqrt(abs(λs[1]))/abs(λw[1])
 end
 
 

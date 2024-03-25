@@ -4,13 +4,14 @@ using ADFPCM: cycle, logZ
 let
     include("exampletensors.jl")
     include("exampleobs.jl")
-    d = 2
+    d = 4
     χ = 16
     β = 100
     atype = Array
     
-    model = Ising_Triangle_bad2(1, 1, β)
-    M = atype(reshape(model_tensor(model, Val(:Sbulk)), 2,2,2,2))
+    model = Ising_Triangle_bad(1, 1, β)
+    M = atype(reshape(model_tensor(model, Val(:Sbulk)), d,d,d,d))
+
     _, _, mcM = mcform(M)
     params = ADFPCM.Params(χ=χ, ifsave=true, maxiter=1000, infolder="./data/$model/")
     

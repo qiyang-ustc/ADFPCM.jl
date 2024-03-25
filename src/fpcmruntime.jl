@@ -67,6 +67,7 @@ function FPCM(M, rt::FPCMRuntime, Params)
     freenergy = logZ(rt)
     for i = 1:Params.maxiter
         # rt = cyclemove(rt)
+        # rt = rotatemove(rt)
         rt = hvmove(rt)
         freenergy_new = logZ(rt)
         err = abs(freenergy_new - freenergy)
@@ -82,6 +83,7 @@ function FPCM(M, rt::FPCMRuntime, Params)
                 isdir(Params.outfolder) || mkdir(Params.outfolder)
                 out_chkp_file = Params.outfolder*"/χ$(Params.χ).h5"
                 savetype(out_chkp_file, rts, FPCMRuntime)
+                # savetype(Params.outfolder*"/χ$(Params.χ)_$(i).h5", rts, FPCMRuntime)
     
                 logfile = open(Params.outfolder*"/χ$(Params.χ).log", "a")
                 write(logfile, logentry(i, err, freenergy, nn))
